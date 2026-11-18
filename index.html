@@ -1,0 +1,2797 @@
+<!DOCTYPE html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1116">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Marcador">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%230E1116"/><rect x="18" y="18" width="64" height="64" rx="14" fill="none" stroke="%23E6C35C" stroke-width="6"/><circle cx="35" cy="35" r="6.5" fill="%23E6C35C"/><circle cx="65" cy="35" r="6.5" fill="%23E6C35C"/><circle cx="50" cy="50" r="6.5" fill="%23E6C35C"/><circle cx="35" cy="65" r="6.5" fill="%23E6C35C"/><circle cx="65" cy="65" r="6.5" fill="%23E6C35C"/></svg>'>
+<title>Marcador · Juegos de Mesa</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap');
+:root{
+  --bg:#0E1116;--surface:#161B22;--surface2:#12161D;
+  --line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.15);
+  --txt:#EAEEF5;--muted:#9AA4B4;--faint:#788395;
+  --glow:#1f1c14;
+  --gold:#E6C35C;        /* acento (relleno): victoria / líder */
+  --goldTxt:#E6C35C;     /* acento como texto (se oscurece en tema claro) */
+  --silverTxt:#B8C4D4;   /* 2º puesto */
+  --bronzeTxt:#C88A5E;   /* 3º puesto */
+  --dangerTxt:#F07A7A;
+  --okTxt:#4CC38A;
+  --disp:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+  --body:'Inter',ui-sans-serif,system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{
+  background:radial-gradient(1200px 800px at 50% -280px,var(--glow) 0%,var(--bg) 60%);
+  color:var(--txt);font-family:var(--body);-webkit-font-smoothing:antialiased;
+  min-height:100vh;line-height:1.5;
+}
+button{font-family:var(--body);cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* ══ v18 · Armazón: cabecera · zona que se desplaza · zona inferior fija ══ */
+.app{display:flex;flex-direction:column;max-width:640px;margin:0 auto;height:100vh;height:calc(100dvh / var(--z,1))}
+:where(.hd,#main,#bottom,#padSheet) button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation}
+:where(.hd,#main,#bottom,#padSheet) button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+[data-lp]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+
+/* ── Cabecera ── */
+.hd{display:flex;align-items:flex-end;gap:10px;padding:calc(14px + env(safe-area-inset-top)) 16px 10px;flex-shrink:0}
+.hd-l{flex:1;min-width:0}
+.kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gameName{
+  display:block;width:100%;background:transparent;border:none;border-bottom:1px dashed transparent;border-radius:0;
+  font-family:var(--disp);font-weight:700;font-size:clamp(20px,6vw,26px);letter-spacing:-.02em;color:var(--txt);margin:2px 0 0;padding:2px 0;
+}
+#gameName::placeholder{color:var(--faint)}
+#gameName:focus{outline:none;border-bottom-color:var(--gold)}
+.hd-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+#gameTimer{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
+.hbtn{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line2);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;font-size:18px;transition:.15s}
+.hbtn:hover{color:var(--txt)}
+
+/* ── Zona central ── */
+.main{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 12px 12px}
+.seclabel{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin:0 0 8px 2px}
+.empty{border:1px dashed var(--line2);border-radius:18px;padding:28px 20px;text-align:center;color:var(--muted);line-height:1.6;margin:10px 0;font-size:14.5px}
+.empty p{margin:0 0 14px}
+.empty .btn{display:inline-block;width:auto;padding:0 22px}
+.empty .emptyHint{margin:14px 0 0;font-size:12.5px;color:var(--faint)}
+.diceResult{font-family:var(--disp);font-weight:600;font-size:15px;color:var(--goldTxt);text-align:center;margin:12px 0 0}
+.diceResult:empty{display:none}
+
+/* ── Piezas compartidas ── */
+.dl{position:absolute;z-index:2;font-family:var(--mono);font-size:11px;font-weight:600;border-radius:99px;padding:1px 7px;
+  background:var(--bg);border:1px solid var(--line2);pointer-events:none;white-space:nowrap}
+.dl.up{color:var(--okTxt)}.dl.dn{color:var(--dangerTxt)}
+.faces{display:inline-flex;align-items:center;gap:4px;min-width:0}
+.die{display:inline-grid;grid-template:repeat(3,1fr)/repeat(3,1fr);width:22px;height:22px;padding:3.5px;gap:1px;border-radius:6px;background:var(--txt);flex-shrink:0}
+.die i{border-radius:50%}.die i.on{background:var(--bg)}
+.nd{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 3px;border-radius:6px;background:var(--txt);color:var(--bg);
+  font-family:var(--disp);font-weight:700;font-size:12.5px;flex-shrink:0}
+.nd.blank{background:transparent;border:1.5px dashed var(--line2);color:var(--faint)}
+.more{font-family:var(--mono);font-size:11px;color:var(--faint);flex-shrink:0}
+.roll .die,.roll .nd,.roll .sq{animation:wob .14s linear infinite}
+@keyframes wob{0%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}100%{transform:rotate(-8deg)}}
+.ring{--p:1;width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:conic-gradient(var(--gold) calc(var(--p)*360deg),var(--line2) 0);
+  -webkit-mask:radial-gradient(circle,transparent 9px,#000 10px);mask:radial-gradient(circle,transparent 9px,#000 10px)}
+
+/* ── Vista A · Lista ── */
+.vpA{display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.a-row{--c:#888;display:flex;align-items:center;gap:8px;padding:10px;border-radius:18px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--c) 14%,var(--surface)),var(--surface) 70%);border:1px solid var(--line)}
+.a-row.pk{border-color:var(--gold);box-shadow:0 0 0 2px rgba(230,195,92,.35)}
+.a-who{flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:48px;text-align:left;border-radius:12px}
+.av{position:relative;width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--disp);font-weight:700;font-size:18px;color:var(--txt);background:color-mix(in srgb,var(--c) 28%,var(--bg));border:2px solid var(--c)}
+.rk{position:absolute;right:-5px;bottom:-5px;min-width:20px;height:20px;padding:0 4px;border-radius:99px;font-style:normal;
+  font-family:var(--mono);font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);color:var(--muted);border:1px solid var(--line2)}
+.rk.g{background:var(--gold);color:#161104;border-color:var(--gold)}
+.a-nm{flex:1;min-width:0}
+.a-nm b{display:block;font-family:var(--disp);font-weight:600;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.a-nm small{display:block;font-size:11.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm{width:44px;height:48px;border-radius:14px;background:var(--bg);border:1px solid var(--line2);font-size:22px;font-weight:600;flex-shrink:0}
+.pm:active,.a-sc:active{background:var(--surface2)}
+.a-sc{position:relative;min-width:56px;height:48px;padding:0 4px;font-family:var(--disp);font-weight:700;font-size:25px;font-variant-numeric:tabular-nums;
+  border-bottom:1.5px dashed var(--line2);flex-shrink:0}
+.a-sc .dl{top:-10px;right:-10px}
+
+/* ── Vista B · Mosaico ── */
+.vpB{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(140px,1fr);gap:10px;min-height:100%;padding-top:4px}
+.tile{--c:#888;--tc:#0E1116;position:relative;border-radius:24px;background:var(--c);color:var(--tc);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;transition:transform .12s}
+.tile.pk{box-shadow:0 0 0 3px var(--bg),0 0 0 6px var(--gold);transform:scale(.97)}
+.half{position:absolute;top:0;bottom:0;width:50%;z-index:1}
+.half.l{left:0}.half.r{right:0}
+.half:active{background:rgba(14,17,22,.14)}
+.tile .half:focus-visible{outline:3px solid var(--tc);outline-offset:-6px}
+.t-nm{position:absolute;left:14px;top:10px;right:58px;pointer-events:none;line-height:1.25}
+.t-nm b{display:block;font-family:var(--disp);font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-nm small{display:block;margin-top:2px;font-size:12px;font-weight:600;white-space:nowrap;opacity:.85}
+.t-rk{position:absolute;right:10px;top:10px;font-family:var(--mono);font-size:11.5px;font-weight:600;background:rgba(14,17,22,.82);color:#EAEEF5;
+  border-radius:99px;padding:2px 9px;pointer-events:none}
+.t-rk.g{background:#0E1116;color:#E6C35C}
+.t-sc{font-family:var(--disp);font-weight:700;font-size:clamp(40px,14vw,58px);letter-spacing:-.03em;font-variant-numeric:tabular-nums;pointer-events:none;line-height:1;margin-top:12px}
+.t-m,.t-p{position:absolute;bottom:12px;font-family:var(--disp);font-weight:700;font-size:16px;opacity:.6;pointer-events:none}
+.t-m{left:14px}.t-p{right:14px}
+.tile .dl{left:50%;top:50%;transform:translate(-50%,-58px);background:#0E1116;border-color:transparent;font-size:12.5px;padding:2px 9px}
+.tile .dl.up{color:#4CC38A}.tile .dl.dn{color:#F07A7A}
+.t-pad{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);z-index:2;width:44px;height:36px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;color:var(--tc);background:rgba(14,17,22,.12)}
+.t-pad .ic{width:18px;height:18px}
+.vpB.many{grid-auto-rows:minmax(150px,1fr)}
+.vpB.many .t-sc{font-size:clamp(34px,11vw,44px);margin-top:16px}
+.t-pad::after{content:'';position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);width:48px;height:44px}
+
+/* ── Vista C · Turno (lista de arriba) ── */
+.vpC{display:flex;flex-direction:column;gap:2px;padding-top:2px}
+.c-r{--c:#888;position:relative;width:100%;display:flex;align-items:center;gap:10px;min-height:46px;padding:0 10px;border-radius:12px;text-align:left}
+.c-r.on{background:color-mix(in srgb,var(--c) 18%,var(--surface))}
+.c-r.pk{box-shadow:inset 0 0 0 2px var(--gold)}
+.c-r i{font-style:normal;font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--faint);width:24px;flex-shrink:0}
+.c-r i.g{color:var(--goldTxt)}
+.c-r u{width:10px;height:10px;border-radius:50%;background:var(--c);flex-shrink:0}
+.c-r b{flex:1;min-width:0;font-family:var(--disp);font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-r small{font-size:12px;color:var(--faint);white-space:nowrap}
+.c-r em{font-style:normal;font-family:var(--disp);font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+.c-r .dl{right:2px;top:-6px}
+
+/* ── Tabla de rondas ──────────────────────── */
+.tableWrap{
+  overflow-x:auto;border:1px solid var(--line);border-radius:16px;
+  background:var(--surface2);margin-bottom:8px;-webkit-overflow-scrolling:touch;
+}
+table{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed}
+th,td{border-bottom:1px solid var(--line);padding:0;text-align:center}
+thead th{
+  position:sticky;top:0;background:var(--surface);z-index:2;
+  font-family:var(--mono);font-size:11px;color:var(--faint);font-weight:500;
+  padding:10px 4px;min-width:40px;white-space:nowrap;
+}
+thead th[data-delround]{cursor:pointer}
+.delx{color:var(--dangerTxt);font-size:10px;margin-left:3px;opacity:.8}
+thead th:first-child,tbody th{
+  position:sticky;left:0;background:var(--surface);z-index:3;
+  font-family:var(--disp);font-size:14px;font-weight:600;color:var(--txt);
+  width:var(--nameW,96px);min-width:84px;padding:8px 10px;text-align:left;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  border-right:1px solid var(--line2);
+}
+thead th:first-child{z-index:4;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--faint);cursor:default}
+tbody th{cursor:pointer}
+.cdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.totCol{
+  position:sticky;right:0;background:var(--surface);z-index:3;
+  border-left:2px solid rgba(230,195,92,.35);width:58px;min-width:52px;padding:8px 8px;
+}
+thead th.totCol{z-index:4;font-family:var(--mono);font-size:11px;color:var(--faint);cursor:default}
+td.totCol{font-family:var(--disp);font-weight:700;font-size:17px}
+td.totCol.best{color:var(--goldTxt)}
+.scoreInput{
+  width:100%;min-width:0;height:50px;border:none;background:transparent;
+  color:var(--txt);font-family:var(--mono);font-size:16px;text-align:center;border-radius:0;padding:0 2px;
+}
+.scoreInput:focus{outline:none;background:rgba(230,195,92,.08);box-shadow:inset 0 -2px 0 var(--gold)}
+.scoreInput::placeholder{color:var(--faint);opacity:.5}
+.tableNote{font-family:var(--mono);font-size:10.5px;color:var(--faint);text-align:center;margin:0 0 20px}
+
+/* ── Botones de las hojas ── */
+.btn{
+  flex:1;min-height:52px;border-radius:14px;border:1px solid var(--line2);background:var(--surface);color:var(--txt);
+  font-family:var(--disp);font-size:15.5px;font-weight:600;transition:.15s;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btnPrimary{background:var(--gold);border-color:var(--gold);color:#161104}
+.btnGhost{background:var(--surface);color:var(--txt)}
+
+/* ══ v18 · Zona inferior fija (cambia según la vista) ══ */
+#bottom{flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+.tool{min-height:62px;border-radius:16px;background:var(--surface);border:1px solid var(--line2);padding:8px 10px;text-align:left;
+  display:flex;flex-direction:column;justify-content:space-between;gap:4px;min-width:0}
+.tool:active{background:var(--surface2)}
+.tool small{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool>span{display:flex;align-items:center;gap:6px;min-width:0}
+.tool b{font-family:var(--disp);font-weight:700;font-size:17px;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tool .ic{color:var(--goldTxt)}
+.tool.live{border-color:var(--goldTxt)}
+.tool.warn{border-color:var(--dangerTxt)}
+.tool.warn b{color:var(--dangerTxt)}
+.dock{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px 12px;border-top:1px solid var(--line);background:var(--surface2)}
+.dock .tool{padding:8px}.dock .tool b{font-size:15px}.dock .tool .ic{width:15px;height:15px}
+.dock .tool .ring{width:24px;height:24px;-webkit-mask:radial-gradient(circle,transparent 7px,#000 8px);mask:radial-gradient(circle,transparent 7px,#000 8px)}
+.tabbar{display:flex;align-items:flex-end;border-top:1px solid var(--line);background:var(--surface2);padding:6px 6px 8px}
+.tabbar button{flex:1;min-width:0;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-size:10.5px;font-weight:500;color:var(--faint);border-radius:12px}
+.tabbar button.on{color:var(--goldTxt)}
+.tabbar .newr{flex:0 0 84px;min-height:54px;margin:0 4px 2px;background:var(--gold);color:#161104;border-radius:18px;
+  font-family:var(--disp);font-weight:700;font-size:13px;transform:translateY(-8px);box-shadow:0 6px 18px rgba(230,195,92,.25)}
+.tabbar .newr .ic{stroke-width:2.4}
+.b-step{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px 6px;font-size:12.5px;color:var(--muted)}
+.b-step button{position:relative;min-width:46px;height:36px;border-radius:99px;border:1px solid var(--line2);font-family:var(--disp);font-weight:600;font-size:14px;color:var(--muted)}
+.b-step button::after{content:'';position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);width:48px;height:46px}
+.b-step button.on{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+.island{margin:4px 12px 12px;padding:8px 10px;border-radius:26px;background:var(--surface);border:1px solid var(--line2);
+  display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.bub{width:48px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--faint);font-weight:500;white-space:nowrap}
+.bub>span{width:46px;height:46px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;
+  font-family:var(--disp);font-weight:700;font-size:17px;color:var(--txt);position:relative}
+.bub:active>span{background:var(--bg)}
+.bub.live>span{border-color:var(--goldTxt)}
+.bub.warn>span{border-color:var(--dangerTxt)}
+.bub .sq{width:30px;height:30px;border-radius:8px;background:var(--txt);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;font-style:normal}
+.bub .sq.blank{background:transparent;border:1.5px dashed var(--line2);color:var(--faint)}
+.bub .ring{position:absolute;inset:3px;width:auto;height:auto;-webkit-mask:radial-gradient(circle,transparent 16px,#000 17px);mask:radial-gradient(circle,transparent 16px,#000 17px)}
+.bub .ic{color:var(--goldTxt)}
+.bub b{font-size:13px;position:relative}
+.isep{width:1px;align-self:stretch;background:var(--line2);margin:4px 0}
+.b-new{flex:1;min-width:0;height:48px;padding:0 8px;border-radius:99px;background:var(--gold);color:#161104;font-family:var(--disp);font-weight:700;font-size:14px;
+  display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.b-new .ic{width:17px;height:17px;stroke-width:2.6}
+.b-more{width:44px;height:48px;flex-shrink:0;border-radius:99px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.c-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 12px}
+.c-panel{--c:#888;margin:0 8px;border-radius:26px 26px 0 0;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);border-bottom:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 16%,var(--surface)),var(--surface) 60%);padding:0 12px 12px;overflow:hidden}
+.c-bar{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;width:calc(100% + 24px);margin:0 -12px;min-height:44px;padding:0 16px;
+  font-family:var(--mono);font-size:11.5px;color:var(--muted);text-align:left}
+.c-bar::before{content:'';position:absolute;left:0;top:0;height:4px;width:calc(var(--p,1)*100%);background:var(--c);transition:width .25s linear}
+.c-bar b{color:var(--txt);font-weight:600}
+.c-bar.warn b{color:var(--dangerTxt)}
+.c-who{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:0 4px 10px}
+.c-who>div:first-child{min-width:0}
+.c-who small{display:block;font-size:12px;color:var(--muted)}
+.c-who .nm{font-family:var(--disp);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--c);line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.light .c-who .nm{color:var(--txt)}
+.c-who .sc{text-align:right;line-height:1;flex-shrink:0}
+.c-who .sc b{font-family:var(--disp);font-weight:700;font-size:44px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.c-who .sc span{display:block;margin-top:4px;font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+.c-who .sc span.up{color:var(--okTxt)}.c-who .sc span.dn{color:var(--dangerTxt)}
+.c-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.c-keys button{height:52px;border-radius:16px;background:var(--bg);border:1px solid var(--line2);font-family:var(--disp);font-weight:700;font-size:19px;
+  display:flex;align-items:center;justify-content:center;gap:6px}
+.c-keys button:active{background:var(--surface2)}
+.c-keys .neg{color:var(--muted)}
+.c-keys .kb{font-size:13px;font-weight:600;color:var(--muted)}
+.c-next{width:100%;height:56px;margin-top:10px;border-radius:18px;background:var(--gold);color:#161104;font-family:var(--disp);font-weight:700;font-size:16.5px;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.c-next small{font-weight:600;font-size:13px;opacity:.75;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── Hojas inferiores (dialog) ────────────── */
+dialog{
+  position:fixed;inset:auto 0 0 0;margin:0 auto;width:100%;max-width:640px;
+  border:1px solid var(--line2);border-bottom:none;border-radius:20px 20px 0 0;
+  background:var(--surface);color:var(--txt);padding:20px 18px calc(20px + env(safe-area-inset-bottom));
+  max-height:85vh;overflow-y:auto;
+}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h2{font-family:var(--disp);font-size:17px;font-weight:600;margin:0 0 16px}
+.field{margin-bottom:16px}
+.field label,.thlab{
+  display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:6px;
+}
+.field input[type=text]{
+  width:100%;min-height:48px;border-radius:12px;border:1px solid var(--line2);
+  background:var(--bg);color:var(--txt);font-family:var(--body);font-size:16px;padding:0 14px;
+}
+.field input:focus{outline:none;border-color:var(--gold)}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{
+  width:52px;height:48px;border-radius:12px;border:1px solid var(--line2);
+  background:var(--bg);color:var(--txt);font-size:20px;font-weight:600;transition:.15s;
+}
+.stepper button:hover{border-color:var(--goldTxt);color:var(--goldTxt)}
+.stepper button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.stepper input{
+  flex:1;min-height:48px;border-radius:12px;border:1px solid var(--line2);
+  background:var(--bg);color:var(--txt);font-family:var(--mono);font-size:18px;
+  text-align:center;padding:0 8px;
+}
+.stepper input:focus{outline:none;border-color:var(--gold)}
+.fieldHint{font-size:12px;color:var(--faint);margin-top:6px;line-height:1.5}
+.sheetBtns{display:flex;gap:10px;margin-top:6px}
+.sheetBtns .btn{min-height:48px}
+.deleteRow{margin-top:14px;text-align:center}
+.deleteRow button{
+  background:none;border:none;color:var(--dangerTxt);font-size:13.5px;
+  font-family:var(--body);padding:10px 14px;border-radius:10px;
+}
+.deleteRow button:focus-visible{outline:2px solid var(--dangerTxt);outline-offset:2px}
+
+/* ── Lista de tiradas (hoja de dados) ── */
+.calcList{
+  border:1px solid var(--line);border-radius:12px;background:var(--bg);
+  padding:10px 14px;margin-bottom:10px;min-height:64px;max-height:32vh;overflow-y:auto;
+  font-family:var(--mono);font-size:14px;
+}
+.calcList .cl{display:flex;justify-content:space-between;padding:2px 0;color:var(--txt)}
+.calcList .cl span:last-child{color:var(--faint)}
+.calcList .clEmpty{color:var(--faint);font-size:12.5px;font-family:var(--body)}
+.calcSum{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:var(--mono);font-size:13px;color:var(--faint);margin-bottom:14px;padding:0 4px;
+}
+.calcSum b{font-family:var(--disp);font-size:26px;color:var(--goldTxt)}
+
+/* ── v18 · Teclado de puntos (sustituye al campo pequeño y al modo cálculo ∑) ── */
+#padSheet .pad-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 2px 10px}
+#padSheet .pad-h>span{font-size:14px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#padWho{color:var(--txt)}
+.padVal{font-family:var(--disp);font-size:36px;font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0}
+.padList{font-family:var(--mono);font-size:13px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:0 0 10px;overflow-wrap:anywhere}
+.pad-k{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad-k button{height:54px;border-radius:14px;background:var(--bg);border:1px solid var(--line2);color:var(--txt);font-family:var(--disp);font-size:22px;font-weight:600}
+.pad-k button:active{background:var(--surface2)}
+.pad-a{display:flex;gap:8px;margin-top:10px}
+.pad-a .btn{min-height:52px}
+#padOk{flex:1.6}
+.padLinks{display:flex;justify-content:space-between;margin-top:6px}
+.padLinks button{min-height:44px;padding:0 10px;color:var(--muted);font-size:13.5px}
+
+/* ── Opciones, tema, historial ────────────── */
+.optGroup{margin-bottom:20px}
+.optChoice{
+  display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;
+  background:var(--bg);border:1px solid var(--line2);border-radius:12px;
+  padding:12px 14px;margin-bottom:8px;color:var(--txt);font-size:14px;line-height:1.5;transition:.15s;
+}
+.optChoice.on{border-color:var(--goldTxt);background:rgba(230,195,92,.08)}
+.optChoice .mark{
+  width:18px;height:18px;border-radius:50%;border:2px solid var(--line2);
+  flex-shrink:0;margin-top:2px;
+}
+.optChoice.on .mark{border-color:var(--goldTxt);background:var(--goldTxt)}
+.optChoice:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.thmodes{display:flex;gap:6px;margin-bottom:14px}
+.tchip{
+  flex:1;border:1px solid var(--line2);background:transparent;color:var(--muted);
+  border-radius:99px;padding:9px 10px;font-size:13px;font-weight:500;transition:.15s;text-align:center;
+}
+.tchip:hover{color:var(--txt)}
+.tchip.on{border-color:var(--goldTxt);color:var(--goldTxt);background:rgba(230,195,92,.10)}
+.tchip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.thsws{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.thsw{width:34px;height:34px;border-radius:50%;border:2px solid var(--line2);cursor:pointer;padding:0}
+.thsw.on{outline:2px solid var(--goldTxt);outline-offset:2px}
+.thcustom{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.thcustom input[type=color]{width:44px;height:34px;border:1px solid var(--line2);border-radius:8px;background:transparent;padding:2px;cursor:pointer}
+.thhex{font-family:var(--mono);font-size:11.5px;margin-left:auto}
+.thdim{opacity:.4;pointer-events:none}
+.thct{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);margin:8px 0 16px;padding-top:8px;border-top:1px dashed var(--line)}
+.thct b{font-family:var(--mono)}
+.thct.ok b{color:var(--okTxt)}.thct.mid b{color:var(--goldTxt)}.thct.ko b{color:var(--dangerTxt)}
+html.light .thct.ok b{color:#1E7A4E}
+.histStats{
+  border:1px solid var(--line);border-radius:12px;background:var(--bg);
+  padding:12px 14px;margin-bottom:14px;font-size:13.5px;
+}
+.histStats .hs{display:flex;justify-content:space-between;padding:3px 0}
+.histStats .hs b{font-family:var(--mono);font-weight:600}
+.histItem{
+  border:1px solid var(--line);border-radius:12px;background:var(--bg);
+  padding:12px 14px;margin-bottom:8px;font-size:13.5px;line-height:1.6;
+}
+.histItem .hdate{font-family:var(--mono);font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em}
+.histItem .hgame{font-family:var(--disp);font-weight:600;font-size:15px}
+.histItem .hwin{color:var(--goldTxt);font-weight:600}
+.histItem .hline{color:var(--muted);font-family:var(--mono);font-size:12px}
+.histEmpty{color:var(--faint);font-size:13.5px;text-align:center;padding:16px 0}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important}
+  .qbtn:hover,.btn:hover,.topctrls button:hover{transform:none}
+}
+
+/* ── Sorteo a pantalla completa ───────────── */
+#startOverlay{
+  position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;text-align:center;
+  background:var(--bg);cursor:pointer;padding:24px;
+}
+#startOverlay[hidden]{display:none}
+#startOverlay .ovk{font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--faint)}
+#startOverlay .ovname{
+  font-family:var(--disp);font-weight:700;font-size:clamp(40px,14vw,84px);
+  letter-spacing:-.02em;line-height:1.1;word-break:break-word;
+}
+#startOverlay .ovhint{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);position:absolute;bottom:calc(24px + env(safe-area-inset-bottom))}
+
+/* ── Modo revelación ── */
+body.revealing #bottom{display:none}
+body.revealing .hd-r .hbtn{visibility:hidden}
+body.revealing .main{padding-bottom:96px}
+.vpR{display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.rv{--c:#888;display:flex;align-items:center;gap:12px;min-height:60px;padding:0 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c)}
+.rv-pos{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--faint);width:30px;flex-shrink:0}
+.rv b{flex:1;min-width:0;font-family:var(--disp);font-weight:600;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rv em{font-style:normal;font-family:var(--disp);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums}
+.rv.hid em{color:var(--faint)}
+.rv.win{border-color:var(--gold);background:linear-gradient(90deg,rgba(230,195,92,.18),var(--surface) 70%)}
+.rv.win .rv-pos{color:var(--goldTxt)}
+#revealBar{
+  position:fixed;bottom:0;left:0;right:0;z-index:20;
+  display:none;gap:10px;max-width:640px;margin:0 auto;
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+  background:linear-gradient(transparent,var(--bg) 35%);
+}
+body.revealing #revealBar{display:flex}
+
+/* ── Aviso Deshacer ───────────────────────── */
+#undoToast{
+  position:fixed;left:16px;right:16px;bottom:calc(var(--botH,88px) + 10px);
+  max-width:608px;margin:0 auto;z-index:30;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--surface);border:1px solid var(--line2);border-radius:14px;
+  padding:12px 16px;font-size:14px;
+}
+#undoToast[hidden]{display:none}
+#undoBtn{
+  background:none;border:none;color:var(--goldTxt);font-weight:600;
+  font-family:var(--disp);font-size:14.5px;padding:6px 10px;border-radius:8px;flex-shrink:0;
+}
+#undoBtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ── Pestañas y diseño horizontal ──
+   En vertical, Partida y Rondas se alternan con las pestañas.
+   En apaisado ancho, se ven las dos a la vez (como en la v10). */
+@media not all and (orientation: landscape) and (min-width: 640px){
+  .main[data-tab="rondas"] #viewPartida{display:none}
+  .main:not([data-tab="rondas"]) #tableSec{display:none}
+}
+@media (orientation: landscape) and (min-width: 640px){
+  .app{max-width:1100px}
+  .main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 20px;align-content:start}
+  #viewPartida{grid-column:1;grid-row:1}
+  #diceResult{grid-column:1;grid-row:2}
+  #tableSec{grid-column:2;grid-row:1 / span 2}
+  .rback,.tabbar [data-v="rondas"]{display:none}
+  #revealBar{max-width:1100px}
+  #undoToast{max-width:720px}
+}
+/* pantallas muy bajas (móvil apaisado): toda la app se desplaza y la zona inferior va al final */
+@media (max-height: 500px){
+  .app{height:auto;min-height:100vh}
+  .main{overflow:visible}
+  #undoToast{bottom:calc(12px + env(safe-area-inset-bottom))}
+}
+
+/* ── Subtítulo del overlay ── */
+.ovsub{font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.04em}
+
+/* ── Temporizador de turno ────────────────── */
+.ttime{
+  font-family:var(--disp);font-weight:700;font-size:56px;text-align:center;
+  margin:0 0 16px;font-variant-numeric:tabular-nums;
+}
+.ttime.warn{color:var(--dangerTxt)}
+#ttSlider{width:100%;accent-color:var(--gold);min-height:32px;margin:2px 0}
+[data-tlive].warn [data-tl]{color:var(--dangerTxt)}
+@keyframes ttFlash{0%,100%{background:var(--surface)}50%{background:rgba(240,122,122,.28)}}
+[data-tlive].done{animation:ttFlash .6s 4}
+@media (prefers-reduced-motion: reduce){[data-tlive].done,.roll .die,.roll .nd,.roll .sq{animation:none}.tile,.c-bar::before{transition:none}}
+
+/* ── Aviso de lectura fallida (pantalla completa, no se cierra sola) ── */
+#loadFail{
+  position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);padding:24px;padding-bottom:calc(24px + env(safe-area-inset-bottom));
+}
+#loadFail[hidden]{display:none}
+.lfCard{width:100%;max-width:420px;text-align:center}
+.lfIcon{
+  width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:26px;margin:0 auto 14px;color:var(--dangerTxt);
+  background:rgba(240,122,122,.14);border:1px solid rgba(240,122,122,.4);
+}
+.lfCard h2{font-family:var(--disp);font-weight:600;font-size:19px;margin:0 0 10px}
+.lfCard p.lftx{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 20px}
+.lfCard .btn{width:100%;margin-bottom:10px}
+.lfCard .btnDanger{background:var(--surface);color:var(--dangerTxt);border-color:rgba(240,122,122,.4)}
+.lfCard .btnDanger.armed{background:rgba(240,122,122,.16);border-color:var(--dangerTxt)}
+.lfhint{font-size:12.5px;color:var(--faint);line-height:1.5;margin:6px 2px 0}
+.lfhint.danger{color:var(--dangerTxt)}
+
+/* ── Copias automáticas (panel ⚙) ── */
+.abk{
+  display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;margin-bottom:8px;
+}
+.abk .abkmeta{flex:1;min-width:0}
+.abk .abkd{font-family:var(--disp);font-weight:600;font-size:14px}
+.abk .abks{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.abk .abkrest{
+  flex-shrink:0;position:relative;min-width:40px;height:40px;padding:0 14px;border-radius:11px;
+  border:1px solid var(--line2);background:var(--surface);color:var(--txt);
+  font-family:var(--disp);font-weight:600;font-size:13px;transition:.15s;
+}
+.abk .abkrest.armed{border-color:var(--dangerTxt);color:var(--dangerTxt);background:rgba(240,122,122,.12)}
+.abk .abkrest:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* objetivo táctil ≥44px sin agrandar el botón visible (D22) */
+.abk .abkrest::after{content:'';position:absolute;inset:50% auto auto 50%;
+  transform:translate(-50%,-50%);width:44px;height:44px}
+.abkEmpty{font-size:13px;color:var(--faint);padding:6px 2px 2px}
+
+/* ── Versión + registro (C2/A2) ── */
+.verBox{border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:2px 12px}
+.verBox>summary{font-family:var(--mono);font-size:12.5px;color:var(--muted);
+  padding:11px 2px;cursor:pointer;list-style:none}
+.verBox>summary::-webkit-details-marker{display:none}
+.verBox>summary b{color:var(--goldTxt)}
+.vrow{display:flex;gap:10px;padding:8px 2px;border-top:1px solid var(--line);font-size:13px}
+.vrow .vn{font-family:var(--mono);font-weight:600;color:var(--goldTxt);flex-shrink:0;width:42px}
+.vrow .vt{color:var(--muted);line-height:1.45}
+
+/* ══ v18 · Ajustes: vista, herramientas, pestaña de rondas ══ */
+[hidden]{display:none!important}
+.vopts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vopt{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px 9px;border-radius:16px;border:1px solid var(--line2);background:var(--bg);color:var(--txt);transition:.15s}
+.vopt.on{border-color:var(--goldTxt);background:rgba(230,195,92,.08)}
+.vopt>b{font-family:var(--disp);font-weight:600;font-size:14px}
+.vopt.on>b{color:var(--goldTxt)}
+.vopt small{font-size:11px;color:var(--faint);line-height:1.3;text-align:center}
+.vopt:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.th{display:grid;width:52px;height:64px;padding:5px;gap:3px;border-radius:9px;background:var(--surface2);border:1px solid var(--line2)}
+.thA{grid-template-rows:repeat(4,1fr)}.thA i{border-radius:3px;background:var(--line2)}
+.thB{grid-template:1fr 1fr/1fr 1fr}.thB i{border-radius:4px}
+.thB i:nth-child(1){background:#5CB8E6}.thB i:nth-child(2){background:#E67AB0}.thB i:nth-child(3){background:#6BD68B}.thB i:nth-child(4){background:#F0925C}
+.thC{grid-template-rows:5px 5px 5px 1fr}.thC i{background:var(--line2);border-radius:2px}.thC b{background:rgba(230,195,92,.55);border-radius:5px}
+.optRow{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:0 14px;margin-bottom:8px;border-radius:12px;
+  background:var(--bg);border:1px solid var(--line2);color:var(--txt);font-size:14.5px;text-align:left}
+.optRow b{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--goldTxt);font-weight:600}
+.optRow i{font-style:normal;color:var(--faint);margin-left:auto}
+.optRow b+i{margin-left:0}
+.optRow:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.rhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 8px}
+.rhead .seclabel{margin:0}
+.rback{min-height:44px;padding:0 12px;border-radius:99px;background:var(--surface);border:1px solid var(--line2);color:var(--txt);font-size:13px;font-weight:600}
+.roundsEmpty{font-size:13.5px;color:var(--muted);border:1px dashed var(--line2);border-radius:14px;padding:12px 14px;margin:0 0 10px}
+#addRoundBtn{width:100%;margin:0 0 12px}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-pick" viewBox="0 0 24 24"><circle cx="12" cy="6" r="3" fill="currentColor"/><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-pad" viewBox="0 0 24 24"><path d="M6 6h.01M12 6h.01M18 6h.01M6 12h.01M12 12h.01M18 12h.01M6 18h.01M12 18h.01M18 18h.01" stroke-width="2.8"/></symbol>
+  <symbol id="i-game" viewBox="0 0 24 24"><path d="M4 20V11h5v9M9.5 20V5h5v15M15 20v-6h5v6"/></symbol>
+  <symbol id="i-rounds" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 10h17M3.5 14.5h17M9.5 5v14"/></symbol>
+  <symbol id="i-hist" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-set" viewBox="0 0 24 24"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 19.5c.8-3.4 3.3-5.5 6.5-5.5s5.7 2.1 6.5 5.5M18.5 8v6M15.5 11h6"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <header class="hd">
+    <div class="hd-l">
+      <div class="kicker"><span id="roundTag">Ronda 1</span><span id="goalTag"></span></div>
+      <input id="gameName" placeholder="Nombre de la partida" autocomplete="off" aria-label="Nombre de la partida">
+    </div>
+    <div class="hd-r">
+      <span id="gameTimer"></span>
+      <button class="hbtn" id="addPlayerBtn" aria-label="Añadir jugador" title="Añadir jugador"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg></button>
+      <button class="hbtn" id="newGameBtn" aria-label="Nueva partida" title="Nueva partida">⟲</button>
+    </div>
+  </header>
+
+  <main class="main" id="main" data-tab="partida">
+    <section id="viewPartida" class="vp" aria-label="Marcador"></section>
+    <p class="diceResult" id="diceResult" role="status"></p>
+    <section id="tableSec" aria-label="Rondas guardadas">
+      <div class="rhead"><p class="seclabel">Rondas guardadas</p><button class="rback" data-act="tab" data-v="partida">← Volver a la partida</button></div>
+      <p class="roundsEmpty" id="roundsEmpty">Aún no hay rondas guardadas. «+ Ronda» guarda la puntuación actual de cada jugador como una ronda.</p>
+      <div class="tableWrap">
+        <table>
+          <thead><tr id="headRow"></tr></thead>
+          <tbody id="bodyRows"></tbody>
+        </table>
+      </div>
+      <p class="tableNote">Total = rondas + puntuación actual · toca R1, R2… para borrar una ronda · toca un nombre para editarlo</p>
+      <button class="btn btnPrimary" id="addRoundBtn">+ Ronda</button>
+    </section>
+  </main>
+
+  <div id="bottom"></div>
+</div>
+
+<div id="revealBar">
+  <button class="btn btnGhost" id="revealExit">Salir</button>
+  <button class="btn btnPrimary" id="revealNext">Revelar</button>
+</div>
+
+<div id="undoToast" hidden role="status">
+  <span id="undoText"></span>
+  <button id="undoBtn">Deshacer</button>
+</div>
+
+<div id="startOverlay" hidden role="dialog" aria-live="assertive">
+  <span class="ovk" id="ovKicker">Empieza</span>
+  <span class="ovname" id="ovName"></span>
+  <span class="ovsub" id="ovSub" hidden></span>
+  <span class="ovhint">Toca para cerrar</span>
+</div>
+
+<!-- Aviso de lectura fallida (§6.1): no se cierra solo; ofrece salidas -->
+<div id="loadFail" hidden role="dialog" aria-modal="true" aria-labelledby="lfTitle">
+  <div class="lfCard">
+    <div class="lfIcon" aria-hidden="true">⚠</div>
+    <h2 id="lfTitle">No he podido leer tus datos</h2>
+    <p class="lftx">Tras varios intentos no consigo leer las partidas guardadas en este dispositivo. Para no arriesgarme a escribir encima de datos buenos, no tocaré nada hasta que elijas.</p>
+    <button class="btn btnPrimary" id="lfRetry">Reintentar</button>
+    <button class="btn btnGhost" id="lfRestore" hidden>↺ Restaurar copia automática</button>
+    <button class="btn btnDanger" id="lfWipe">Empezar de cero</button>
+    <p class="lfhint danger" id="lfWipeHint" hidden>Descarta lo que hubiera guardado y empieza una partida vacía. Vuelve a pulsar para confirmar.</p>
+    <p class="lfhint" id="lfRestoreHint" hidden></p>
+  </div>
+</div>
+
+<div class="sr" aria-live="polite" id="announce"></div>
+
+<!-- Hoja: nuevo jugador -->
+<dialog id="newSheet" aria-labelledby="newSheetTitle">
+  <h2 id="newSheetTitle">Nuevo jugador</h2>
+  <div class="field">
+    <label for="npName">Nombre</label>
+    <input type="text" id="npName" autocomplete="off" enterkeyhint="done">
+  </div>
+  <div class="field">
+    <label for="npPoints">Puntuación</label>
+    <div class="stepper">
+      <button type="button" data-step="npPoints:-1" aria-label="Restar un punto">−</button>
+      <input id="npPoints" inputmode="numeric" value="0" aria-label="Puntuación inicial">
+      <button type="button" data-step="npPoints:1" aria-label="Sumar un punto">+</button>
+    </div>
+  </div>
+  <div class="sheetBtns">
+    <button class="btn btnGhost" id="npCancel">Cancelar</button>
+    <button class="btn btnPrimary" id="npAdd">Añadir jugador</button>
+  </div>
+</dialog>
+
+<!-- Hoja: editar jugador -->
+<dialog id="editSheet" aria-labelledby="editSheetTitle">
+  <h2 id="editSheetTitle">Editar jugador</h2>
+  <div class="field">
+    <label for="epName">Nombre</label>
+    <input type="text" id="epName" autocomplete="off" enterkeyhint="done">
+  </div>
+  <div class="field">
+    <label for="epPoints">Puntuación</label>
+    <div class="stepper">
+      <button type="button" data-step="epPoints:-1" aria-label="Restar un punto">−</button>
+      <input id="epPoints" inputmode="numeric" value="0" aria-label="Puntuación actual">
+      <button type="button" data-step="epPoints:1" aria-label="Sumar un punto">+</button>
+    </div>
+    <div class="fieldHint">Con − puede quedar en negativo (penalizaciones).</div>
+  </div>
+  <div class="field">
+    <label>Color</label>
+    <div class="thsws" id="epColors"></div>
+    <div class="thcustom"><input type="color" id="epColorPick" aria-label="Color personalizado"><span>A tu elección</span><span class="thhex" id="epColorHex"></span></div>
+  </div>
+  <div class="field">
+    <label for="epWins">Victorias 🏆</label>
+    <div class="stepper">
+      <button type="button" data-step="epWins:-1" aria-label="Restar una victoria">−</button>
+      <input id="epWins" inputmode="numeric" value="0" aria-label="Victorias generales">
+      <button type="button" data-step="epWins:1" aria-label="Sumar una victoria">+</button>
+    </div>
+    <div class="fieldHint">Partidas ganadas en total. Se suma sola al terminar cada partida; ajústala aquí solo para corregir.</div>
+  </div>
+  <div class="field">
+    <label>Orden en la mesa</label>
+    <div class="sheetBtns" style="margin-top:0">
+      <button type="button" class="btn btnGhost" id="epUp">↑ Subir</button>
+      <button type="button" class="btn btnGhost" id="epDown">↓ Bajar</button>
+    </div>
+    <div class="fieldHint">Cambia la posición en la tabla de rondas, para reflejar el orden de asiento.</div>
+  </div>
+  <div class="sheetBtns">
+    <button class="btn btnGhost" id="epCancel">Cancelar</button>
+    <button class="btn btnPrimary" id="epSave">Guardar</button>
+  </div>
+  <div class="deleteRow">
+    <button id="epDelete">Eliminar jugador (puntuaciones y victorias)</button>
+  </div>
+</dialog>
+
+<!-- Hoja: teclado de puntos (v18) -->
+<dialog id="padSheet" aria-labelledby="padTitle">
+  <div class="pad-h"><span id="padTitle">Sumar a <b id="padWho"></b> (<span id="padNow">0</span>)</span><b class="padVal" id="padVal" aria-live="polite">+0</b></div>
+  <div class="padList" id="padList" hidden aria-live="polite"></div>
+  <div class="pad-k" id="padKeys" role="group" aria-label="Teclado numérico">
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+    <button data-k="±" aria-label="Cambiar el signo">±</button><button data-k="0">0</button><button data-k="⌫" aria-label="Borrar">⌫</button>
+  </div>
+  <div class="pad-a">
+    <button class="btn btnGhost" id="padMore">+ Sumar otro</button>
+    <button class="btn btnPrimary" id="padOk">Aplicar</button>
+  </div>
+  <div class="padLinks"><button id="padEdit">Editar jugador</button><button id="padCancel">Cancelar</button></div>
+</dialog>
+
+<!-- Hoja: nueva partida -->
+<dialog id="newGameSheet" aria-labelledby="ngTitle">
+  <h2 id="ngTitle">Nueva partida</h2>
+  <div id="ngArchiveNote" class="fieldHint" style="margin:-6px 0 14px" hidden>La partida actual se guardará antes en el historial y se sumará la victoria.</div>
+  <button class="optChoice" id="ngKeepAll">
+    <span class="mark" aria-hidden="true" style="border-radius:6px">↺</span>
+    <span><b>Otra partida con la misma gente</b><br>Pone a cero las puntuaciones. Mantiene jugadores, colores y victorias 🏆.</span>
+  </button>
+  <button class="optChoice" id="ngKeepNames">
+    <span class="mark" aria-hidden="true" style="border-radius:6px">⌫</span>
+    <span><b>Reiniciar victorias</b><br>Mantiene los jugadores y sus colores, pero pone su marcador de victorias 🏆 a cero.</span>
+  </button>
+  <button class="optChoice" id="ngWipe">
+    <span class="mark" aria-hidden="true" style="border-radius:6px">✕</span>
+    <span><b>Empezar de cero</b><br>Borra puntuaciones, victorias y todos los jugadores. La partida queda vacía.</span>
+  </button>
+  <div class="sheetBtns" style="margin-top:6px">
+    <button class="btn btnGhost" id="ngCancel" style="width:100%">Cancelar</button>
+  </div>
+</dialog>
+
+<!-- Hoja: temporizador de turno -->
+<dialog id="timerSheet" aria-labelledby="timerTitle">
+  <h2 id="timerTitle">Temporizador de turno</h2>
+  <div class="ttime" id="ttDisplay" role="timer" aria-live="off">60 s</div>
+  <span class="thlab">Presets</span>
+  <div class="thmodes" style="flex-wrap:wrap" role="group" aria-label="Tiempos predefinidos">
+    <button class="tchip" data-tt="15" style="flex:1 0 28%">15 s</button>
+    <button class="tchip" data-tt="30" style="flex:1 0 28%">30 s</button>
+    <button class="tchip" data-tt="45" style="flex:1 0 28%">45 s</button>
+    <button class="tchip on" data-tt="60" style="flex:1 0 28%">60 s</button>
+    <button class="tchip" data-tt="90" style="flex:1 0 28%">90 s</button>
+    <button class="tchip" data-tt="120" style="flex:1 0 28%">2 min</button>
+  </div>
+  <span class="thlab">Ajuste fino</span>
+  <input type="range" id="ttSlider" min="5" max="300" step="5" value="60" aria-label="Duración del temporizador en segundos">
+  <div class="fieldHint" id="ttSliderVal">60 segundos</div>
+  <div class="sheetBtns" style="margin-top:14px">
+    <button class="btn btnGhost" id="ttReset">Reiniciar</button>
+    <button class="btn btnPrimary" id="ttStart">Iniciar</button>
+  </div>
+  <div class="sheetBtns">
+    <button class="btn btnGhost" id="ttClose" style="width:100%">Cerrar</button>
+  </div>
+  <div class="fieldHint" style="margin-top:10px">El temporizador sigue corriendo aunque cierres esta ventana: el botón de turno de la pantalla principal muestra los segundos restantes.</div>
+</dialog>
+
+<!-- Hoja: dados (se abre manteniendo pulsado el dado, o desde Ajustes) -->
+<dialog id="diceSheet" aria-labelledby="diceTitle">
+  <h2 id="diceTitle">Dados</h2>
+  <div class="optGroup">
+    <span class="thlab">Tipo de dado</span>
+    <div class="thmodes" id="dieChips" role="group" aria-label="Tipo de dado" style="flex-wrap:wrap">
+      <button class="tchip" data-die="4" style="flex:1 0 28%">d4</button>
+      <button class="tchip" data-die="6" style="flex:1 0 28%">d6</button>
+      <button class="tchip" data-die="8" style="flex:1 0 28%">d8</button>
+      <button class="tchip" data-die="10" style="flex:1 0 28%">d10</button>
+      <button class="tchip" data-die="12" style="flex:1 0 28%">d12</button>
+      <button class="tchip" data-die="20" style="flex:1 0 28%">d20</button>
+    </div>
+    <span class="thlab">Cantidad</span>
+    <div class="stepper" style="margin-bottom:12px">
+      <button type="button" data-step="diceCount:-1" aria-label="Un dado menos">−</button>
+      <input id="diceCount" inputmode="numeric" value="1" aria-label="Número de dados">
+      <button type="button" data-step="diceCount:1" aria-label="Un dado más">+</button>
+    </div>
+    <button class="btn btnPrimary" id="rollBtn" style="width:100%;min-height:48px">Tirar 1d6</button>
+    <div class="calcSum" style="margin-top:12px"><span id="rollDetail">Resultado</span><b id="rollSum">–</b></div>
+    <div class="calcList" id="rollHist" hidden aria-label="Últimas tiradas"></div>
+    <div class="fieldHint">Se guarda con la partida y con el nombre del juego. En la pantalla principal, un toque en el dado tira; mantenerlo pulsado vuelve a abrir esta hoja.</div>
+  </div>
+  <div class="sheetBtns">
+    <button class="btn btnGhost" id="diceClose">Hecho</button>
+  </div>
+</dialog>
+
+<!-- Hoja: opciones y tema -->
+<dialog id="optSheet" aria-labelledby="optSheetTitle">
+  <h2 id="optSheetTitle">Ajustes</h2>
+  <div class="optGroup">
+    <span class="thlab">Vista de la partida</span>
+    <div class="vopts" role="group" aria-label="Vista de la partida">
+      <button class="vopt" data-act="view" data-v="A" aria-pressed="false"><span class="th thA" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b>Lista</b><small>Botones − / +</small></button>
+      <button class="vopt" data-act="view" data-v="B" aria-pressed="false"><span class="th thB" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b>Mosaico</b><small>Toca la baldosa</small></button>
+      <button class="vopt" data-act="view" data-v="C" aria-pressed="false"><span class="th thC" aria-hidden="true"><i></i><i></i><i></i><b></b></span><b>Turno</b><small>Mando del turno</small></button>
+    </div>
+    <div class="fieldHint" id="viewHint"></div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Herramientas</span>
+    <button class="optRow" id="optDice"><span>Dados</span><b id="optDiceVal">1d6</b><i aria-hidden="true">›</i></button>
+    <button class="optRow" id="optTimer"><span>Tiempo de turno</span><b id="optTimerVal">1 min</b><i aria-hidden="true">›</i></button>
+    <div class="fieldHint">Atajo en la pantalla principal: un toque tira el dado o inicia el turno; mantenerlo pulsado abre estos ajustes. Mantener pulsado un jugador abre su edición.</div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Partida</span>
+    <button class="optRow" id="optRounds"><span>Tabla de rondas</span><i aria-hidden="true">›</i></button>
+    <button class="optRow" id="histOpen"><span>Historial de partidas</span><i aria-hidden="true">›</i></button>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Final de partida</span>
+    <button class="btn btnGhost" id="revealBtn" style="width:100%;min-height:48px;margin-bottom:8px">👁 Revelación de resultados</button>
+    <button class="btn btnGhost" id="shareBtn" style="width:100%;min-height:48px">📤 Compartir resultado</button>
+    <div class="fieldHint">La revelación oculta los totales y los muestra puesto a puesto. Compartir abre el menú del móvil con el resumen de la partida.</div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Al pulsar + Ronda</span>
+    <button class="optChoice" data-roundmode="capturar" id="rmCapturar">
+      <span class="mark" aria-hidden="true"></span>
+      <span><b>Guardar la puntuación actual</b> como la puntuación de esa ronda y resetearla a 0.</span>
+    </button>
+    <button class="optChoice" data-roundmode="vacia" id="rmVacia">
+      <span class="mark" aria-hidden="true"></span>
+      <span><b>Crear una ronda vacía</b> y escribir las puntuaciones a mano en la tabla.</span>
+    </button>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Quién gana</span>
+    <button class="optChoice" data-winmode="alto" id="wmAlto">
+      <span class="mark" aria-hidden="true"></span>
+      <span><b>La puntuación más alta</b> (la mayoría de juegos).</span>
+    </button>
+    <button class="optChoice" data-winmode="bajo" id="wmBajo">
+      <span class="mark" aria-hidden="true"></span>
+      <span><b>La puntuación más baja</b> (UNO, Skyjo, golf…).</span>
+    </button>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Objetivo de puntos</span>
+    <div class="stepper">
+      <button type="button" data-step="goalInput:-10" aria-label="Restar diez al objetivo">−</button>
+      <input id="goalInput" inputmode="numeric" value="0" aria-label="Objetivo de puntos">
+      <button type="button" data-step="goalInput:10" aria-label="Sumar diez al objetivo">+</button>
+    </div>
+    <div class="fieldHint">Cuando alguien alcanza esta cifra, la app anuncia el final y al ganador. 0 = sin objetivo. Con "gana el más bajo", llegar al objetivo señala el final y gana quien menos puntos tiene.</div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Memoria por juego</span>
+    <div class="fieldHint">Se guardan con el nombre de la partida: vista, dados, tiempo de turno, valor de cada toque, quién gana, objetivo y modo de + Ronda. La próxima vez que escribas "UNO" en el título, se aplicarán solos.</div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Ventanas emergentes</span>
+    <div class="thmodes"><button class="tchip" id="coChip">Cerrar al tocar fuera</button></div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Pantalla</span>
+    <div class="thmodes"><button class="tchip" id="wlChip">Mantener encendida</button></div>
+    <div class="fieldHint" id="wlHint" hidden>No disponible en este navegador (en iPhone requiere iOS 16.4 o superior).</div>
+    <div class="fieldHint">Evita que el móvil se bloquee durante la partida. Consume más batería.</div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Accesibilidad</span>
+    <div class="thmodes"><button class="tchip" id="vibChip">Vibrar al puntuar</button></div>
+    <div class="fieldHint">Confirmación al tocar − / + y al añadir en el modo cálculo. Funciona en Android; el Safari de iPhone no soporta vibración.</div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Copia de seguridad</span>
+    <button class="btn btnGhost" id="bkDownload" style="width:100%;min-height:48px;margin-bottom:8px">⬇ Descargar copia (JSON)</button>
+    <button class="btn btnGhost" id="bkImport" style="width:100%;min-height:48px;margin-bottom:8px">⬆ Importar copia</button>
+    <button class="btn btnGhost" id="bkCsv" style="width:100%;min-height:48px">Exportar historial (CSV)</button>
+    <input type="file" id="bkFile" accept=".json,application/json" hidden>
+    <div class="fieldHint">La copia incluye la partida en curso, el historial y todos los ajustes. Importar sustituye los datos actuales. El CSV usa punto y coma, listo para hojas de cálculo en español.</div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Copias automáticas</span>
+    <div id="autoBkList"></div>
+    <div class="fieldHint">Guardo sola una copia por cada día que abres la app (hasta 3 rotatorias). Restaurar sustituye la partida actual, el historial y los ajustes por los de esa copia.</div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Tema</span>
+    <div id="themeBody"></div>
+  </div>
+  <div class="optGroup">
+    <span class="thlab">Versión</span>
+    <details class="verBox">
+      <summary><b id="verNow">v19</b> · registro de versiones</summary>
+      <div id="verLog"></div>
+    </details>
+    <div class="fieldHint" id="verSw"></div>
+  </div>
+  <div class="sheetBtns">
+    <button class="btn btnPrimary" id="optClose">Cerrar</button>
+  </div>
+</dialog>
+
+<!-- Hoja: historial -->
+<dialog id="histSheet" aria-labelledby="histTitle">
+  <h2 id="histTitle">Historial de partidas</h2>
+  <div id="histStats"></div>
+  <div id="histList"></div>
+  <div class="sheetBtns">
+    <button class="btn btnGhost" id="histClear">Borrar historial</button>
+    <button class="btn btnPrimary" id="histClose">Cerrar</button>
+  </div>
+</dialog>
+
+<script>
+/* fallback de almacenamiento (por si se abre fuera del entorno con window.storage) */
+if(!window.storage){(function(){
+  var ls=null; try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); ls=localStorage; }catch(e){}
+  var m={};
+  window.storage={
+    get:function(k){var v=ls?ls.getItem(k):(m.hasOwnProperty(k)?m[k]:null);return Promise.resolve(v!==null&&v!==undefined?{key:k,value:v}:null);},
+    set:function(k,v){if(ls){try{ls.setItem(k,v);}catch(e){m[k]=v;}}else{m[k]=v;}return Promise.resolve({key:k,value:v});},
+    delete:function(k){if(ls)ls.removeItem(k);delete m[k];return Promise.resolve({key:k,deleted:true});},
+    list:function(){return Promise.resolve({keys:ls?Object.keys(ls):Object.keys(m)});}
+  };
+})();}
+
+(function(){
+'use strict';
+var APP_VERSION='v19';          /* ÚNICA fuente de la versión (D8): cuadra con el nombre del archivo y la primera fila del registro */
+var KEY='marcador_juegos_mesa_v2';
+var KEY_H='marcador_historial_v1';
+var KEY_P='marcador_perfiles_v1';
+var AUTO_BK_KEYS=['marcador_auto_backup_1','marcador_auto_backup_2','marcador_auto_backup_3'];
+
+/* Guardia de lectura (§6.1/D10): mientras no se hayan leído bien los datos,
+   NADA escribe encima. Sin nube, un dato pisado no se recupera. */
+var ESTADO_LEIDO=false;
+var READ_RETRIES=[0,400,1200];  /* 3 intentos: inmediato, +400 ms, +1200 ms */
+
+/* Registro de versiones (C2). La primera fila DEBE ser APP_VERSION (D8). */
+var CHANGELOG=[
+ {v:'v19',t:'Lista para publicar en GitHub Pages: se puede instalar en la pantalla de inicio (manifest e iconos), abre sin conexión (service worker con una caché por versión, que solo toca las cachés de esta app) y queda fuera de los buscadores (noindex). Política de seguridad (CSP) que solo permite lo que la app usa. En Ajustes → Versión se ve qué versión tiene guardada el service worker, con aviso si no coincide.'},
+ {v:'v18',t:'Rediseño para móvil. Tres vistas de la partida, que se eligen en Ajustes y se recuerdan para cada juego: Lista (botones − / +), Mosaico (toca la mitad derecha de la baldosa para sumar y la izquierda para restar; eliges si cada toque vale 1, 5 o 10) y Turno (mando del jugador al que le toca, con «Siguiente», que pasa el turno y cierra la ronda al dar la vuelta). Dados, sorteo de quién empieza y temporizador, a la vista en la pantalla principal: un toque los usa y mantener pulsado los ajusta (también sirve para editar a un jugador). Teclado numérico propio que puede sumar varios valores seguidos (sustituye al campo pequeño y al modo cálculo ∑). Victorias visibles en las tres vistas. Pestañas Partida · Rondas · Historial · Ajustes. «+ Ronda» se puede deshacer.'},
+ {v:'v17',t:'Cierra el último hueco de la red de seguridad: al empezar una partida nueva, si no consigue leer el historial no lo sobrescribe ni borra la partida en curso (antes, un fallo justo al archivar podía vaciar el historial); avisa y no toca nada. Las copias (JSON y CSV) también abortan con aviso si no pueden leer el historial, en vez de exportarlo vacío.'},
+ {v:'v16',t:'Red de seguridad de datos: si no consigue leer las partidas guardadas, avisa y NO escribe encima (antes podía borrarlas al arrancar en blanco). Copia automática: guarda sola una copia por cada día que abres la app (3 ranuras rotatorias), restaurable desde Opciones. Versión visible + este registro.'},
+ {v:'v15',t:'Victorias generales por jugador (🏆, editables); ⟲ Nueva partida con tres niveles (mantener todo / reiniciar victorias / empezar de cero).'},
+ {v:'v14',t:'⟲ con hoja de opciones sin confirm(); columna de nombres adaptativa con prioridad sobre las rondas.'},
+ {v:'v13',t:'Columnas de ronda adaptativas al ancho; campo de puntuación escribible en el podio (Enter fija; ∑ separado).'},
+ {v:'v12',t:'Memoria por juego (ajustes por nombre de partida); estadísticas del historial (media, récord, racha, duración media).'},
+ {v:'v11',t:'Empates comparten puesto; copia de seguridad JSON + importar + CSV; temporizador de turno.'},
+ {v:'v10',t:'Diseño horizontal en apaisado; objetivo de puntos; compartir resultado.'},
+ {v:'v9',t:'Deshacer al borrar ronda/jugador (sin confirm); reordenar jugadores.'},
+ {v:'v8',t:'Tamaño de texto; vibración al puntuar; guardado con retardo; icono de pantalla de inicio.'},
+ {v:'v7',t:'Pantalla siempre encendida; revelación de resultados; sorteo a pantalla completa; cronómetro de partida.'},
+ {v:'v6',t:'Sorteo con azar criptográfico; dados virtuales d4–d20.'},
+ {v:'v5',t:'Modo cálculo; puntuación actual visible; colores por jugador; gana el más bajo; sorteo de inicio; historial.'},
+ {v:'v4',t:'Tabla transpuesta con Total fijo; puntuación por jugador; sistema de temas.'},
+ {v:'v1–v3',t:'Primeras versiones: marcador básico, identidad visual de las apps de Leandro, bottom sheets.'}
+];
+
+/* Memoria por juego: recuerda los ajustes de cada nombre de partida
+   (quién gana, objetivo, modo de + Ronda y temporizador). */
+var profiles={};
+function profLoad(){return window.storage.get(KEY_P).then(function(r){
+  if(r&&r.value)profiles=JSON.parse(r.value)||{};
+}).catch(function(){});}
+function profSave(){if(!ESTADO_LEIDO)return;try{window.storage.set(KEY_P,JSON.stringify(profiles));}catch(e){}}
+function profKey(){return (state.gameName||'').trim().toLowerCase();}
+function profStore(){
+  var k=profKey();if(!k)return;
+  var o=state.opts;
+  profiles[k]={winMode:o.winMode,goal:o.goal,roundMode:o.roundMode,turnSecs:o.turnSecs,
+               view:o.view,die:o.die,diceN:o.diceN,step:o.step};
+  profSave();
+}
+function profApply(){
+  var k=profKey();if(!k||!profiles[k])return;
+  var p=profiles[k],o=state.opts;
+  /* los perfiles de antes de la v18 no traen vista/dados: esos campos se ignoran */
+  var changed=(p.winMode!==o.winMode)||(p.goal!==o.goal)||(p.roundMode!==o.roundMode)||(p.turnSecs!==o.turnSecs)
+    ||(p.view!==undefined&&p.view!==o.view)||(p.die!==undefined&&p.die!==o.die)
+    ||(p.diceN!==undefined&&p.diceN!==o.diceN)||(p.step!==undefined&&p.step!==o.step);
+  if(!changed)return;
+  if(p.winMode==='alto'||p.winMode==='bajo')o.winMode=p.winMode;
+  if(typeof p.goal==='number'&&p.goal>=0)o.goal=p.goal;
+  if(p.roundMode==='capturar'||p.roundMode==='vacia')o.roundMode=p.roundMode;
+  if(typeof p.turnSecs==='number'&&p.turnSecs>=5)o.turnSecs=p.turnSecs;
+  if(p.view==='A'||p.view==='B'||p.view==='C')o.view=p.view;
+  if(DIE_TYPES.indexOf(p.die)>-1)o.die=p.die;
+  if(typeof p.diceN==='number'&&p.diceN>=1&&p.diceN<=10)o.diceN=Math.round(p.diceN);
+  if(p.step===1||p.step===5||p.step===10)o.step=p.step;
+  state.goalHit=false;
+  save();renderAll();syncOpts();ttSyncControls();syncViewOpts();
+  showNotice('Ajustes guardados de "'+state.gameName.trim()+'" aplicados · vista '+VIEWS[o.view].n+'.');
+}
+
+/* Estado: players [{id,name,extra,color}] · rounds [{scores:{playerId:"texto"}}]
+   "extra" = PUNTUACIÓN ACTUAL del jugador (nombre del campo mantenido por
+   compatibilidad con los datos guardados de versiones anteriores). */
+var DIE_TYPES=[4,6,8,10,12,20];
+/* v18: turnId/firstId/turnSet (turno y quién empezó, por id de jugador) y en opts:
+   view (A Lista · B Mosaico · C Turno), die + diceN (dados), step (valor de cada toque
+   en el Mosaico) y hints (consejos de «mantén pulsado» ya mostrados) */
+var state={gameName:'',players:[],rounds:[],startT:null,goalHit:false,winCounted:false,
+  turnId:null,firstId:null,turnSet:false,
+  opts:{roundMode:'capturar',winMode:'alto',closeOutside:true,wakeLock:true,vibrate:true,goal:0,turnSecs:60,
+        view:'B',die:6,diceN:1,step:1,hints:{dice:false,timer:false}}};
+var editingId=null;
+var PLAYER_COLORS=['#5CB8E6','#9C7BF5','#E67AB0','#6BD68B','#F0925C','#5C8DE6','#E66A6A','#5CD6C2','#C9A15C','#B0D65C'];
+
+/* Guardado con retardo: agrupa escrituras (máx. una cada 300 ms).
+   Al ocultar o cerrar la página se vacía lo pendiente de inmediato. */
+var saveTimer=null,savePending=false;
+function saveNow(){
+  savePending=false;
+  clearTimeout(saveTimer);saveTimer=null;
+  if(!ESTADO_LEIDO)return;   /* §6.1: no escribir encima de datos que no se han leído bien */
+  try{window.storage.set(KEY,JSON.stringify(state));}catch(e){}
+}
+function save(){
+  if(!ESTADO_LEIDO)return;   /* guardia de lectura: bloquea hasta que ESTADO_LEIDO sea true */
+  savePending=true;
+  if(saveTimer)return;
+  saveTimer=setTimeout(function(){saveTimer=null;if(savePending)saveNow();},300);
+}
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden'&&savePending)saveNow();
+});
+window.addEventListener('pagehide',function(){if(savePending)saveNow();});
+/* Vuelca el estado a partir de la cadena guardada (raw). Si el JSON está roto,
+   JSON.parse LANZA a propósito: en el arranque eso lo captura la guardia (§6.1)
+   y muestra el aviso, en vez de resetear en silencio y pisar. */
+function applyStateFromRaw(raw){
+  if(raw!=null){var o=JSON.parse(raw);
+    state.gameName=o.gameName||'';state.players=o.players||[];state.rounds=o.rounds||[];
+    if(typeof o.startT==='number')state.startT=o.startT;
+    if(typeof o.goalHit==='boolean')state.goalHit=o.goalHit;
+    if(typeof o.winCounted==='boolean')state.winCounted=o.winCounted;
+    if(typeof o.turnId==='string')state.turnId=o.turnId;
+    if(typeof o.firstId==='string')state.firstId=o.firstId;
+    if(typeof o.turnSet==='boolean')state.turnSet=o.turnSet;
+    if(o.opts){
+      if(o.opts.roundMode==='capturar'||o.opts.roundMode==='vacia')state.opts.roundMode=o.opts.roundMode;
+      if(o.opts.winMode==='alto'||o.opts.winMode==='bajo')state.opts.winMode=o.opts.winMode;
+      if(typeof o.opts.closeOutside==='boolean')state.opts.closeOutside=o.opts.closeOutside;
+      if(typeof o.opts.wakeLock==='boolean')state.opts.wakeLock=o.opts.wakeLock;
+      if(typeof o.opts.vibrate==='boolean')state.opts.vibrate=o.opts.vibrate;
+      if(typeof o.opts.goal==='number'&&o.opts.goal>=0)state.opts.goal=o.opts.goal;
+      if(typeof o.opts.turnSecs==='number'&&o.opts.turnSecs>=5)state.opts.turnSecs=o.opts.turnSecs;
+      if(o.opts.view==='A'||o.opts.view==='B'||o.opts.view==='C')state.opts.view=o.opts.view;
+      if(DIE_TYPES.indexOf(o.opts.die)>-1)state.opts.die=o.opts.die;
+      if(typeof o.opts.diceN==='number'&&o.opts.diceN>=1&&o.opts.diceN<=10)state.opts.diceN=Math.round(o.opts.diceN);
+      if(o.opts.step===1||o.opts.step===5||o.opts.step===10)state.opts.step=o.opts.step;
+      if(o.opts.hints&&typeof o.opts.hints==='object')state.opts.hints={dice:!!o.opts.hints.dice,timer:!!o.opts.hints.timer};
+    }
+  }
+  /* asignar color a jugadores antiguos que no lo tengan */
+  state.players.forEach(function(p,i){
+    if(!p.color)p.color=PLAYER_COLORS[i%PLAYER_COLORS.length];
+    if(typeof p.wins!=='number')p.wins=0;
+  });
+}
+/* Lectura con 3 reintentos (0/400/1200 ms). Resuelve con el valor guardado
+   (o null si no hay dato, que es válido); rechaza solo si los 3 intentos fallan. */
+function readRaw(key){
+  return new Promise(function(resolve,reject){
+    var i=0;
+    (function attempt(){
+      window.storage.get(key).then(function(r){
+        resolve(r&&r.value!=null?r.value:null);
+      }).catch(function(err){
+        i++;
+        if(i>=READ_RETRIES.length){reject(err||new Error('read '+key));return;}
+        setTimeout(attempt,READ_RETRIES[i]);
+      });
+    })();
+  });
+}
+function load(){return window.storage.get(KEY).then(function(r){
+  applyStateFromRaw(r&&r.value!=null?r.value:null);
+}).catch(function(){});}
+function histLoad(){return window.storage.get(KEY_H).then(function(r){
+  return (r&&r.value)?JSON.parse(r.value):[];
+}).catch(function(){return [];});}
+/* Lectura del historial A PRUEBA DE FALLOS: reintenta (0/400/1200 ms) y RECHAZA
+   si no puede leer o parsear, en vez de devolver [] (que borraría al reescribir).
+   Úsala SIEMPRE que después vayas a escribir el historial o a exportarlo. */
+function histReadSafe(){
+  return readRaw(KEY_H).then(function(v){
+    if(v==null)return [];
+    var h=JSON.parse(v);
+    if(!Array.isArray(h))throw new Error('historial con forma inesperada');
+    return h;
+  });
+}
+function histSave(h){if(!ESTADO_LEIDO)return;try{window.storage.set(KEY_H,JSON.stringify(h));}catch(e){}}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function num(v){var n=parseInt(String(v).trim(),10);return isNaN(n)?0:n;}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function $(id){return document.getElementById(id);}
+function lowWins(){return state.opts.winMode==='bajo';}
+
+function roundSum(pid){
+  var t=0;
+  state.rounds.forEach(function(r){t+=num(r.scores[pid]||'');});
+  return t;
+}
+function totalOf(p){return roundSum(p.id)+num(p.extra);}
+
+/* ── Cronómetro de partida ── */
+function markActivity(){
+  if(state.startT===null){state.startT=Date.now();save();renderTimer();}
+}
+function fmtDur(ms){
+  var m=Math.floor(ms/60000);
+  if(m<1)return '<1 m';
+  if(m<60)return m+' m';
+  return Math.floor(m/60)+' h '+(m%60)+' m';
+}
+function renderTimer(){
+  var el=$('gameTimer');
+  el.textContent=state.startT===null?'':('⏱ '+fmtDur(Date.now()-state.startT));
+}
+setInterval(renderTimer,30000);
+
+/* ══════════ PINTADO v18: tres vistas de la partida ══════════
+   A Lista · B Mosaico · C Turno. Los jugadores van en el ORDEN DE LA MESA y el
+   puesto se ve en una insignia: ya no se reordenan al puntuar (antes la tarjeta
+   se movía bajo el dedo). La vista se repinta entera en cada cambio: ya no tiene
+   campos de texto (los puntos se escriben en el teclado propio). */
+var VIEWS={A:{n:'Lista'},B:{n:'Mosaico'},C:{n:'Turno'}};
+var LP_MS=480;  /* mantener pulsado: 0,48 s (el valor que se probó en la maqueta v2) */
+var ui={tab:'partida',pickId:null,turnDelta:0,lastRoll:null,rolling:false};
+function P(id){for(var i=0;i<state.players.length;i++)if(state.players[i].id===id)return state.players[i];return null;}
+/* D1: todo texto o id que va DENTRO de un atributo se escapa también con comillas */
+function escA(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function safeColor(c){return normHex(c)||'#888888';}
+function inkOn(c){c=safeColor(c);return contrastRatio('#0E1116',c)>=contrastRatio('#FFFFFF',c)?'#0E1116':'#FFFFFF';}
+function ic(n){return '<svg class="ic" aria-hidden="true" focusable="false"><use href="#i-'+n+'"/></svg>';}
+function sgn(v){return (v>0?'+':'−')+Math.abs(v);}
+function fmtSecs(s){var m=Math.floor(s/60),r=s%60;return s<60?s+' s':(r?m+' min '+r+' s':m+' min');}
+function initial(name){var a=Array.from(String(name||'').trim());return (a[0]||'?').toUpperCase();}
+function scoredAny(){return state.rounds.length>0||state.players.some(function(p){return num(p.extra)!==0;});}
+function normalizeTurn(){if(!P(state.turnId))state.turnId=state.players.length?state.players[0].id:null;}
+function turnP(){return P(state.turnId)||state.players[0]||null;}
+function firstP(){return state.turnSet?P(state.firstId):null;}
+/* repintar sin que el teclado/lector de pantalla pierda el botón en el que estaba */
+function withFocus(fn){
+  var a=document.activeElement,fk=a&&a.getAttribute?a.getAttribute('data-fk'):null;
+  fn();
+  if(!fk)return;
+  try{
+    var sel=window.CSS&&CSS.escape?CSS.escape(fk):fk;
+    var n=document.querySelector('[data-fk="'+sel+'"]');
+    if(n&&n!==document.activeElement)n.focus({preventScroll:true});
+  }catch(e){}
+}
+
+function renderAll(){
+  normalizeTurn();
+  $('roundTag').textContent='Ronda '+(state.rounds.length+1);
+  $('main').setAttribute('data-tab',ui.tab);
+  renderTable();                       /* → renderTotals → vista + objetivo */
+  $('roundsEmpty').hidden=state.rounds.length>0;
+  $('addRoundBtn').hidden=state.opts.view!=='C';
+  renderBottom();
+  renderTimer();renderGoalTag();
+}
+
+function renderGoalTag(){
+  var g=state.opts.goal||0;
+  $('goalTag').textContent=g>0?(' · objetivo '+g):'';
+}
+
+/* ── Objetivo de puntos ── */
+function checkGoal(){
+  var g=state.opts.goal||0;
+  if(!g||state.goalHit||reveal||state.players.length===0)return;
+  var reacher=null;
+  state.players.forEach(function(p){
+    if(totalOf(p)>=g&&(!reacher||totalOf(p)>totalOf(reacher)))reacher=p;
+  });
+  if(!reacher)return;
+  state.goalHit=true;countWin();save();
+  var sorted=sortedPlayers();
+  var bestT=totalOf(sorted[0]);
+  var leaders=sorted.filter(function(x){return totalOf(x)===bestT;});
+  var leader=leaders[0];
+  var names=leaders.map(function(x){return x.name;}).join(' y ');
+  var ov=$('startOverlay');
+  $('ovKicker').textContent='Objetivo de '+g+' alcanzado';
+  $('ovName').textContent='🏆 '+names;
+  $('ovName').style.color=leaders.length===1?(leader.color||''):'';
+  $('ovSub').textContent=(lowWins()&&leaders.every(function(x){return x.id!==reacher.id;}))
+    ?(reacher.name+' ha llegado a '+g+' · gana quien menos puntos tiene: '+bestT)
+    :('con '+bestT+' puntos'+(leaders.length>1?' · empate':''));
+  $('ovSub').hidden=false;
+  ov.hidden=false;
+  $('announce').textContent='Objetivo alcanzado. Ganador: '+names;
+  buzz();
+  function closeOv(){
+    ov.hidden=true;$('ovSub').hidden=true;
+    ov.removeEventListener('click',closeOv);
+  }
+  ov.addEventListener('click',closeOv);
+}
+
+function sortedPlayers(){
+  return state.players.slice().sort(function(a,b){
+    return lowWins()?totalOf(a)-totalOf(b):totalOf(b)-totalOf(a);
+  });
+}
+
+/* Clasificación por competición: los empatados comparten puesto (1º, 1º, 3º) */
+function rankMap(){
+  var sorted=sortedPlayers(),map={},prevTotal=null,prevPos=0;
+  sorted.forEach(function(p,i){
+    var t=totalOf(p);
+    var pos=(prevTotal!==null&&t===prevTotal)?prevPos:(i+1);
+    map[p.id]=pos;prevTotal=t;prevPos=pos;
+  });
+  return map;
+}
+
+/* reveal = null | {order:[jugadores de último a primero], n: revelados} */
+var reveal=null;
+
+function renderTable(){
+  var head=$('headRow');head.innerHTML='<th scope="col">Jugador</th>';
+  state.rounds.forEach(function(r,ri){
+    var th=document.createElement('th');th.scope='col';
+    th.dataset.delround=ri;
+    th.setAttribute('role','button');
+    th.setAttribute('aria-label','Eliminar ronda '+(ri+1));
+    th.innerHTML='R'+(ri+1)+'<span class="delx" aria-hidden="true">✕</span>';
+    head.appendChild(th);
+  });
+  var thT=document.createElement('th');thT.scope='col';thT.className='totCol';thT.textContent='Total';
+  head.appendChild(thT);
+
+  var body=$('bodyRows');body.innerHTML='';
+  state.players.forEach(function(p){
+    var tr=document.createElement('tr');
+    var th=document.createElement('th');th.scope='row';
+    th.dataset.edit=p.id;
+    th.setAttribute('title','Editar a '+p.name);
+    th.innerHTML='<span class="cdot" style="background:'+p.color+'" aria-hidden="true"></span>'+esc(p.name);
+    tr.appendChild(th);
+    state.rounds.forEach(function(r,ri){
+      var td=document.createElement('td');
+      var inp=document.createElement('input');
+      inp.className='scoreInput';inp.inputMode='numeric';inp.placeholder='·';
+      inp.value=(r.scores[p.id]!==undefined?r.scores[p.id]:'');
+      inp.dataset.round=ri;inp.dataset.player=p.id;
+      inp.setAttribute('aria-label','Puntos de '+p.name+' en la ronda '+(ri+1));
+      td.appendChild(inp);tr.appendChild(td);
+    });
+    var tdT=document.createElement('td');
+    tdT.className='totCol';tdT.dataset.total=p.id;
+    tr.appendChild(tdT);
+    body.appendChild(tr);
+  });
+
+  renderTotals();
+  fitTable();
+}
+
+/* Actualiza la columna Total de la tabla sin repintar sus inputs (no se pierde
+   el foco) y repinta la vista de la partida. */
+function renderTotals(){
+  if(reveal){renderReveal();return;}
+  var totals={},best=null;
+  state.players.forEach(function(p){
+    totals[p.id]=totalOf(p);
+    if(best===null)best=totals[p.id];
+    else best=lowWins()?Math.min(best,totals[p.id]):Math.max(best,totals[p.id]);
+  });
+  var cells=$('bodyRows').querySelectorAll('[data-total]');
+  cells.forEach(function(td){
+    var t=totals[td.dataset.total];
+    td.textContent=t;
+    td.classList.toggle('best',state.rounds.length>0&&t===best);
+  });
+  renderView();
+  if(state.opts.view==='C')renderBottom();
+  checkGoal();
+}
+
+/* Ajusta el ancho de la tabla al contenedor. Prioridad: primero la columna de
+   NOMBRES recibe el ancho que necesita para no cortar el nombre más largo (con
+   un tope), y solo después se reparte el espacio restante entre las rondas.
+   Si aún así las rondas bajarían de un mínimo legible, se activa el scroll. */
+function fitTable(){
+  var wrap=document.querySelector('.tableWrap');
+  var tbl=wrap&&wrap.querySelector('table');
+  if(!tbl)return;
+  var n=state.rounds.length;
+  var W=wrap.clientWidth;
+
+  /* ancho que pide el nombre más largo: medido, con tope entre 84 y 55% del ancho */
+  var longest='';
+  state.players.forEach(function(p){if(p.name.length>longest.length)longest=p.name;});
+  var nameW=measureNameCol(longest);
+  nameW=Math.max(84,Math.min(nameW,Math.round(W*0.55)));
+
+  var totW=58;
+  var avail=W-nameW-totW;
+  var perCol=n>0?avail/n:avail;
+
+  tbl.style.setProperty('--nameW',nameW+'px');
+  if(n===0||perCol>=48){
+    tbl.style.width='100%';tbl.style.minWidth='0';
+  }else{
+    tbl.style.width='auto';
+    tbl.style.minWidth=(nameW+totW+n*48)+'px';
+  }
+}
+/* mide el ancho de un nombre en la tipografía de la columna (sin pintarlo) */
+var _measureEl=null;
+function measureNameCol(name){
+  if(!_measureEl){
+    _measureEl=document.createElement('span');
+    _measureEl.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;'
+      +'font-family:var(--disp);font-weight:600;font-size:14px';
+    document.body.appendChild(_measureEl);
+  }
+  _measureEl.textContent=name||'';
+  /* + punto de color (9+7) + padding lateral (10+10) + margen de respiro */
+  return Math.ceil(_measureEl.getBoundingClientRect().width)+16+20+8;
+}
+window.addEventListener('resize',fitTable);
+window.addEventListener('orientationchange',function(){setTimeout(fitTable,200);});
+
+/* ── Indicador de último cambio (+3 / −2) ── */
+var deltaBuf={},deltaTimers={};
+function showDelta(pid,d){
+  deltaBuf[pid]=(deltaBuf[pid]||0)+d;
+  clearTimeout(deltaTimers[pid]);
+  deltaTimers[pid]=setTimeout(function(){delete deltaBuf[pid];if(!reveal)renderView();},2200);
+}
+function dlH(pid){var v=deltaBuf[pid];if(!v)return '';return '<span class="dl '+(v>0?'up':'dn')+'" aria-hidden="true">'+sgn(v)+'</span>';}
+
+/* ── Vibración háptica (Android; Safari de iPhone no la soporta) ── */
+function buzz(){
+  if(state.opts.vibrate&&navigator.vibrate){try{navigator.vibrate(8);}catch(e){}}
+}
+
+/* ── Sumar o restar puntos (todas las vistas y el teclado pasan por aquí) ── */
+function quickAdd(pid,d){
+  var p=P(pid);if(!p||!d||reveal)return;
+  p.extra=num(p.extra)+d;
+  markActivity();buzz();
+  var t=turnP();if(t&&t.id===pid)ui.turnDelta+=d;
+  showDelta(pid,d);save();renderTotals();
+}
+
+/* ── Vistas ── */
+function infoH(p){
+  var x=num(p.extra),s='🏆 '+num(p.wins);
+  if(state.rounds.length&&x!==0)s+=' · ronda '+sgn(x);
+  return s;
+}
+function emptyH(){
+  return '<div class="empty"><p>Todavía no hay jugadores.</p>'
+    +'<button class="btn btnPrimary" data-act="addp" data-fk="addp">+ Añadir jugador</button>'
+    +'<p class="emptyHint">El total de cada jugador = rondas guardadas + puntuación actual.</p></div>';
+}
+function viewA(){
+  var r=rankMap(),sc=scoredAny();
+  return state.players.map(function(p){
+    var id=escA(p.id),na=escA(p.name),pos=r[p.id],t=totalOf(p);
+    return '<div class="a-row'+(ui.pickId===p.id?' pk':'')+'" style="--c:'+safeColor(p.color)+'" data-lp="p:'+id+'">'
+      +'<button class="a-who" data-act="edit" data-id="'+id+'" data-fk="e-'+id+'" aria-label="Editar a '+na+'">'
+        +'<span class="av" aria-hidden="true">'+esc(initial(p.name))+'<em class="rk'+(sc&&pos===1?' g':'')+'">'+(sc?pos:'·')+'</em></span>'
+        +'<span class="a-nm"><b>'+esc(p.name)+'</b><small>'+infoH(p)+'</small></span></button>'
+      +'<button class="pm" data-act="add" data-id="'+id+'" data-v="-1" data-fk="m-'+id+'" aria-label="Restar 1 a '+na+'">−</button>'
+      +'<button class="a-sc" data-act="pad" data-id="'+id+'" data-fk="s-'+id+'" aria-label="'+na+': '+t+' puntos. Toca para escribir puntos">'+t+dlH(p.id)+'</button>'
+      +'<button class="pm" data-act="add" data-id="'+id+'" data-v="1" data-fk="p-'+id+'" aria-label="Sumar 1 a '+na+'">+</button>'
+    +'</div>';
+  }).join('');
+}
+function viewB(){
+  var r=rankMap(),sc=scoredAny(),st=state.opts.step;
+  return state.players.map(function(p){
+    var id=escA(p.id),na=escA(p.name),c=safeColor(p.color),pos=r[p.id],t=totalOf(p);
+    return '<div class="tile'+(ui.pickId===p.id?' pk':'')+'" style="--c:'+c+';--tc:'+inkOn(c)+'" data-lp="p:'+id+'">'
+      +'<button class="half l" data-act="add" data-id="'+id+'" data-v="-'+st+'" data-fk="l-'+id+'" aria-label="Restar '+st+' a '+na+', tiene '+t+'"></button>'
+      +'<button class="half r" data-act="add" data-id="'+id+'" data-v="'+st+'" data-fk="r-'+id+'" aria-label="Sumar '+st+' a '+na+', tiene '+t+'"></button>'
+      +'<span class="t-nm"><b>'+esc(p.name)+'</b><small>'+infoH(p)+'</small></span>'
+      +(sc?'<span class="t-rk'+(pos===1?' g':'')+'">'+pos+'º</span>':'')
+      +'<span class="t-sc" aria-hidden="true">'+t+'</span>'+dlH(p.id)
+      +'<span class="t-m" aria-hidden="true">−'+st+'</span><span class="t-p" aria-hidden="true">+'+st+'</span>'
+      +'<button class="t-pad" data-act="pad" data-id="'+id+'" data-fk="k-'+id+'" aria-label="Escribir puntos de '+na+'">'+ic('pad')+'</button>'
+    +'</div>';
+  }).join('');
+}
+function viewC(){
+  var r=rankMap(),sc=scoredAny(),tp=turnP();
+  return state.players.map(function(p){
+    var id=escA(p.id),pos=r[p.id],on=!!(tp&&tp.id===p.id);
+    return '<button class="c-r'+(on?' on':'')+(ui.pickId===p.id?' pk':'')+'" style="--c:'+safeColor(p.color)+'" data-act="sel" data-id="'+id+'" data-lp="p:'+id+'" data-fk="c-'+id+'" aria-pressed="'+on+'"'
+      +' aria-label="'+escA(p.name)+', '+totalOf(p)+' puntos'+(sc?', puesto '+pos:'')+', '+num(p.wins)+' victorias. Toca para darle el turno; mantén pulsado para editar">'
+      +'<i'+(sc&&pos===1?' class="g"':'')+'>'+(sc?pos+'º':'·')+'</i><u></u><b>'+esc(p.name)+'</b><small>🏆 '+num(p.wins)+'</small><em>'+totalOf(p)+'</em>'+dlH(p.id)+'</button>';
+  }).join('');
+}
+function renderView(){
+  var el=$('viewPartida');
+  withFocus(function(){
+    if(!state.players.length){el.className='vp';el.innerHTML=emptyH();return;}
+    var v=state.opts.view;
+    el.className='vp vp'+v+(v==='B'&&state.players.length>4?' many':'');
+    el.innerHTML=v==='A'?viewA():v==='B'?viewB():viewC();
+  });
+}
+/* En revelación: orden de la mesa (no delata la clasificación) y totales ocultos */
+function renderReveal(){
+  var ranks=rankMap(),el=$('viewPartida');
+  el.className='vp vpR';
+  el.innerHTML=state.players.map(function(p){
+    var idx=reveal.order.findIndex(function(x){return x.id===p.id;});
+    var shown=idx>-1&&idx<reveal.n,pos=ranks[p.id];
+    return '<div class="rv'+(shown?'':' hid')+(shown&&pos===1?' win':'')+'" style="--c:'+safeColor(p.color)+'">'
+      +'<span class="rv-pos">'+(shown?pos+'º':'?')+'</span><b>'+esc(p.name)+'</b><em>'+(shown?totalOf(p):'???')+'</em></div>';
+  }).join('');
+}
+
+/* ── Zona inferior: herramientas a la vista ── */
+var PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function dcode(){return state.opts.diceN+'d'+state.opts.die;}
+function rollFor(){var r=ui.lastRoll;return r&&r.code===dcode()?r:null;}
+function faceH(v){
+  if(v==null)return '<span class="nd blank">?</span>';
+  if(state.opts.die===6&&PIPS[v]){var h='<span class="die">';for(var i=0;i<9;i++)h+='<i'+(PIPS[v].indexOf(i)>-1?' class="on"':'')+'></i>';return h+'</span>';}
+  return '<span class="nd">'+v+'</span>';
+}
+function facesH(max){
+  var r=rollFor(),n=state.opts.diceN,show=n>max?max-1:n,h='';
+  for(var i=0;i<show;i++)h+=faceH(r?r.vals[i]:null);
+  if(n>show)h+='<span class="more">+'+(n-show)+'</span>';
+  return '<span class="faces" aria-hidden="true">'+h+'</span>';
+}
+function sumTxt(){var r=rollFor();return r?String(r.sum):'–';}
+function diceAria(){var r=rollFor();return 'Dados '+dcode()+(r?', última tirada '+r.sum:', sin tirar')+'. Toca para tirar; mantén pulsado para cambiarlos';}
+var TIMER_ARIA='Temporizador de turno. Toca para iniciar o pausar; mantén pulsado para cambiar la duración';
+function diceTool(max){
+  return '<button class="tool'+(ui.rolling?' roll':'')+'" data-act="roll" data-lp="dice" data-fk="dice" aria-label="'+diceAria()+'">'
+    +'<small>Dados · '+dcode()+'</small><span>'+facesH(max)+'<b>'+sumTxt()+'</b></span></button>';
+}
+function pickTool(){
+  var f=firstP();
+  return '<button class="tool" data-act="pick" data-fk="pick" aria-label="'+(f?'Empezó '+escA(f.name)+'. Toca para volver a sortear':'Sortear quién empieza')+'">'
+    +'<small>Empieza</small><span>'+ic('pick')+'<b>'+(f?esc(f.name):'Sortear')+'</b></span></button>';
+}
+function timerTool(){
+  return '<button class="tool" data-act="timer" data-lp="timer" data-tlive data-fk="timer" aria-label="'+TIMER_ARIA+'">'
+    +'<small>Turno</small><span><i class="ring" data-tp></i><b data-tl></b></span></button>';
+}
+function tabbar(withRound){
+  var t=ui.tab;
+  return '<nav class="tabbar" aria-label="Secciones">'
+    +'<button data-act="tab" data-v="partida" data-fk="tab-p"'+(t==='partida'?' class="on" aria-current="page"':'')+'>'+ic('game')+'Partida</button>'
+    +'<button data-act="tab" data-v="rondas" data-fk="tab-r"'+(t==='rondas'?' class="on" aria-current="page"':'')+'>'+ic('rounds')+'Rondas</button>'
+    +(withRound?'<button class="newr" data-act="round" data-fk="round">'+ic('plus')+'Ronda</button>':'')
+    +'<button data-act="hist" data-fk="hist">'+ic('hist')+'Historial</button>'
+    +'<button id="optionsBtn" data-act="opts" data-fk="opts">'+ic('set')+'Ajustes</button></nav>';
+}
+function stepRow(){
+  var st=state.opts.step;
+  return '<div class="b-step" role="group" aria-label="Valor de cada toque">Cada toque vale'
+    +[1,5,10].map(function(v){return '<button data-act="step" data-v="'+v+'" data-fk="st'+v+'" class="'+(st===v?'on':'')+'" aria-pressed="'+(st===v)+'">'+v+'</button>';}).join('')
+    +'</div>';
+}
+function island(){
+  var f=firstP(),r=rollFor();
+  return '<div class="island">'
+    +'<button class="bub'+(ui.rolling?' roll':'')+'" data-act="roll" data-lp="dice" data-fk="dice" aria-label="'+diceAria()+'"><span><i class="sq'+(r?'':' blank')+'">'+(r?r.sum:'?')+'</i></span>'+dcode()+'</button>'
+    +'<button class="bub" data-act="pick" data-fk="pick" aria-label="'+(f?'Empezó '+escA(f.name)+'. Toca para volver a sortear':'Sortear quién empieza')+'"><span'+(f?' style="color:'+safeColor(f.color)+'"':'')+'>'+(f?esc(initial(f.name)):ic('pick'))+'</span>Empieza</button>'
+    +'<button class="bub" data-act="timer" data-lp="timer" data-tlive data-fk="timer" aria-label="'+TIMER_ARIA+'"><span><i class="ring" data-tp></i><b data-tl data-short></b></span>Turno</button>'
+    +'<i class="isep" aria-hidden="true"></i>'
+    +'<button class="b-new" data-act="round" data-fk="round">'+ic('plus')+'Ronda</button>'
+    +'<button class="b-more" id="optionsBtn" data-act="opts" data-fk="opts" aria-label="Ajustes, rondas e historial">'+ic('set')+'</button>'
+    +'</div>';
+}
+function cPanel(){
+  var tp=turnP();if(!tp)return '';
+  var idx=state.players.indexOf(tp),nx=state.players[(idx+1)%state.players.length],td=ui.turnDelta,id=escA(tp.id),na=escA(tp.name);
+  var keys=[[-1,'neg'],[1,''],[5,''],[-5,'neg'],[10,'']];
+  return '<div class="c-panel" style="--c:'+safeColor(tp.color)+'">'
+    +'<button class="c-bar" data-act="timer" data-lp="timer" data-tlive data-tp data-fk="timer" aria-label="'+TIMER_ARIA+'"><span>Turno · <b data-tl></b></span><span data-ts></span></button>'
+    +'<div class="c-who"><div><small>Turno de</small><div class="nm">'+esc(tp.name)+'</div></div>'
+      +'<div class="sc"><b>'+totalOf(tp)+'</b><span class="'+(td>0?'up':td<0?'dn':'')+'">'+(td?sgn(td)+' este turno':'sin cambios')+'</span></div></div>'
+    +'<div class="c-keys">'+keys.map(function(k){
+        return '<button class="'+k[1]+'" data-act="add" data-id="'+id+'" data-v="'+k[0]+'" data-fk="ck'+k[0]+'" aria-label="'+(k[0]>0?'Sumar ':'Restar ')+Math.abs(k[0])+' a '+na+'">'+sgn(k[0])+'</button>';
+      }).join('')
+      +'<button class="kb" data-act="pad" data-id="'+id+'" data-fk="ckpad">'+ic('pad')+'Teclado</button></div>'
+    +'<button class="c-next" data-act="next" data-fk="next">Siguiente <small>'+esc(nx.name)+'</small>'+ic('next')+'</button>'
+    +'</div>';
+}
+function renderBottom(){
+  var b=$('bottom');
+  if(reveal){b.innerHTML='';setBotH();return;}
+  var v=state.opts.view,rondas=ui.tab==='rondas',h;
+  if(v==='A')h='<div class="dock">'+diceTool(2)+pickTool()+timerTool()+'</div>'+tabbar(true);
+  else if(v==='B')h=(rondas||!state.players.length?'':stepRow())+island();
+  else h='<div class="c-tools">'+diceTool(3)+pickTool()+'</div>'+(rondas?'':cPanel())+tabbar(false);
+  withFocus(function(){b.innerHTML=h;});
+  ttRender();setBotH();
+}
+/* el aviso «Deshacer» se coloca justo encima de la zona inferior, que cambia de alto según la vista */
+function setBotH(){try{document.documentElement.style.setProperty('--botH',($('bottom').offsetHeight||88)+'px');}catch(e){}}
+window.addEventListener('resize',setBotH);
+
+/* ── Turno ── */
+function setTurn(id){
+  if(!P(id))return;
+  state.turnId=id;state.turnSet=true;
+  if(!P(state.firstId))state.firstId=id;
+  ui.turnDelta=0;ttStop();tt.left=0;
+  save();renderAll();
+}
+/* «Siguiente» (vista Turno): pasa el turno; si estaba corriendo, el temporizador vuelve
+   a empezar para el siguiente. Al volver a quien empezó, la ronda se guarda sola
+   (solo en el modo «guardar la puntuación actual», el que captura los puntos). */
+function nextTurn(){
+  var n=state.players.length;if(!n)return;
+  var cur=turnP(),idx=state.players.indexOf(cur);
+  if(!P(state.firstId))state.firstId=cur.id;
+  state.turnSet=true;
+  var nx=state.players[(idx+1)%n];
+  state.turnId=nx.id;ui.turnDelta=0;
+  var was=tt.running;ttStop();tt.left=0;if(was)ttStart();
+  buzz();
+  if(nx.id===state.firstId&&state.opts.roundMode==='capturar')addRound();
+  else{save();renderAll();}
+}
+function setView(v){
+  if(!VIEWS[v])return;
+  state.opts.view=v;save();profStore();syncViewOpts();renderAll();buzz();
+}
+function setStep(n){
+  if(n!==1&&n!==5&&n!==10)return;
+  state.opts.step=n;save();profStore();renderAll();
+}
+function setTab(t){
+  if(t!=='partida'&&t!=='rondas')return;
+  ui.tab=t;renderAll();
+  try{$('main').scrollTop=0;}catch(e){}
+  if(t==='rondas')fitTable();
+}
+/* Consejo de «mantén pulsado», una sola vez (queda guardado) */
+function hintOnce(k,msg){
+  if(state.opts.hints[k]||reveal)return;
+  if(document.querySelector('dialog[open]'))return;
+  state.opts.hints[k]=true;save();showNotice(msg);
+}
+
+/* ── Hojas: jugadores ── */
+var newSheet=$('newSheet'),editSheet=$('editSheet'),optSheet=$('optSheet'),
+    padSheet=$('padSheet'),histSheet=$('histSheet'),diceSheet=$('diceSheet'),timerSheet=$('timerSheet'),
+    newGameSheet=$('newGameSheet');
+var ALL_SHEETS=[newSheet,editSheet,optSheet,padSheet,histSheet,diceSheet,timerSheet,newGameSheet];
+
+/* cerrar al tocar fuera (opción) */
+ALL_SHEETS.forEach(function(d){
+  d.addEventListener('click',function(e){
+    if(!state.opts.closeOutside)return;
+    var r=d.getBoundingClientRect();
+    if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();
+  });
+});
+
+$('addPlayerBtn').addEventListener('click',function(){
+  $('npName').value='';$('npPoints').value='0';
+  newSheet.showModal();$('npName').focus();
+});
+$('npCancel').addEventListener('click',function(){newSheet.close();});
+$('npAdd').addEventListener('click',addPlayer);
+$('npName').addEventListener('keydown',function(e){if(e.key==='Enter')addPlayer();});
+
+function addPlayer(){
+  var name=$('npName').value.trim();
+  if(!name){$('npName').focus();return;}
+  var color=PLAYER_COLORS[state.players.length%PLAYER_COLORS.length];
+  state.players.push({id:uid(),name:name,extra:num($('npPoints').value),color:color,wins:0});
+  newSheet.close();save();renderAll();
+}
+
+var editColor='';
+function renderEpColors(){
+  var el=$('epColors');
+  el.innerHTML=PLAYER_COLORS.map(function(c){
+    return '<button class="thsw'+(editColor.toUpperCase()===c.toUpperCase()?' on':'')+'" style="background:'+c+'" data-epcolor="'+c+'" aria-label="Color '+c+'"></button>';
+  }).join('');
+  $('epColorPick').value=editColor;
+  $('epColorHex').textContent=editColor.toUpperCase();
+}
+/* ── Aviso Deshacer ── */
+var undoTimer=null,undoFn=null;
+function showUndo(text,fn){
+  undoFn=fn;
+  $('undoText').textContent=text;
+  $('undoBtn').hidden=false;
+  $('undoToast').hidden=false;
+  clearTimeout(undoTimer);
+  undoTimer=setTimeout(hideUndo,6000);
+}
+function hideUndo(){clearTimeout(undoTimer);$('undoToast').hidden=true;undoFn=null;}
+$('undoBtn').addEventListener('click',function(){
+  if(undoFn)undoFn();
+  hideUndo();
+});
+function showNotice(text){
+  undoFn=null;
+  $('undoText').textContent=text;
+  $('undoBtn').hidden=true;
+  $('undoToast').hidden=false;
+  clearTimeout(undoTimer);
+  undoTimer=setTimeout(hideUndo,4000);
+}
+
+/* ── Compartir resultado ── */
+function buildShare(){
+  var lines=['🎲 '+((state.gameName||'').trim()||'Partida')];
+  if(state.startT!==null)lines.push('⏱ '+fmtDur(Date.now()-state.startT));
+  var ranks=rankMap();
+  sortedPlayers().forEach(function(p){
+    var pos=ranks[p.id];
+    lines.push((pos===1?'🏆 ':'')+pos+'º '+p.name+' — '+totalOf(p));
+  });
+  return lines.join('\n');
+}
+$('shareBtn').addEventListener('click',function(){
+  if(state.players.length===0){showNotice('No hay jugadores que compartir.');return;}
+  var txt=buildShare();
+  optSheet.close();
+  if(navigator.share){
+    navigator.share({text:txt}).catch(function(){/* cancelado por el usuario */});
+  }else if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){
+      showNotice('Resultado copiado al portapapeles.');
+    }).catch(function(){showNotice('No se pudo copiar el resultado.');});
+  }else{
+    showNotice('Compartir no está disponible en este navegador.');
+  }
+});
+
+/* ── Orden en la mesa ── */
+function syncMoveBtns(){
+  var idx=state.players.findIndex(function(x){return x.id===editingId;});
+  $('epUp').disabled=idx<=0;
+  $('epDown').disabled=idx<0||idx>=state.players.length-1;
+}
+function movePlayer(dir){
+  var idx=state.players.findIndex(function(x){return x.id===editingId;});
+  var j=idx+dir;
+  if(idx<0||j<0||j>=state.players.length)return;
+  var tmp=state.players[idx];
+  state.players[idx]=state.players[j];
+  state.players[j]=tmp;
+  save();renderAll();syncMoveBtns();buzz();
+}
+$('epUp').addEventListener('click',function(){movePlayer(-1);});
+$('epDown').addEventListener('click',function(){movePlayer(1);});
+
+function openEdit(pid){
+  var p=state.players.find(function(x){return x.id===pid;});
+  if(!p)return;
+  editingId=pid;
+  $('epName').value=p.name;
+  $('epPoints').value=String(num(p.extra));
+  $('epWins').value=String(num(p.wins));
+  editColor=p.color||PLAYER_COLORS[0];
+  renderEpColors();
+  syncMoveBtns();
+  editSheet.showModal();
+}
+$('epCancel').addEventListener('click',function(){editSheet.close();});
+$('epSave').addEventListener('click',function(){
+  var p=state.players.find(function(x){return x.id===editingId;});
+  if(!p)return;
+  var name=$('epName').value.trim();
+  if(name)p.name=name;
+  p.extra=num($('epPoints').value);
+  p.wins=Math.max(0,num($('epWins').value));
+  p.color=editColor;
+  editSheet.close();save();renderAll();
+});
+$('epDelete').addEventListener('click',function(){
+  var p=state.players.find(function(x){return x.id===editingId;});
+  if(!p)return;
+  var idx=state.players.indexOf(p);
+  var savedScores={};
+  state.rounds.forEach(function(r,ri){
+    if(r.scores[p.id]!==undefined)savedScores[ri]=r.scores[p.id];
+  });
+  state.players.splice(idx,1);
+  state.rounds.forEach(function(r){delete r.scores[p.id];});
+  editSheet.close();save();renderAll();
+  showUndo('Se ha eliminado a '+p.name,function(){
+    state.players.splice(Math.min(idx,state.players.length),0,p);
+    Object.keys(savedScores).forEach(function(ri){
+      if(state.rounds[ri])state.rounds[ri].scores[p.id]=savedScores[ri];
+    });
+    save();renderAll();
+  });
+});
+document.addEventListener('click',function(e){
+  var c=e.target.dataset&&e.target.dataset.epcolor;
+  if(c){editColor=c;renderEpColors();}
+});
+$('epColorPick').addEventListener('change',function(){
+  editColor=this.value;renderEpColors();
+});
+
+/* Steppers −/+ de las hojas */
+document.addEventListener('click',function(e){
+  var step=e.target.dataset&&e.target.dataset.step;
+  if(!step)return;
+  var parts=step.split(':');
+  var inp=$(parts[0]);
+  inp.value=String(num(inp.value)+parseInt(parts[1],10));
+});
+
+/* ── Teclado de puntos (v18) ──
+   Sustituye al campo pequeño del podio y al modo cálculo ∑: «+ Sumar otro» va
+   acumulando valores (lo que hacía el modo cálculo) y «Aplicar» suma el total. */
+var pad={pid:null,str:'',neg:false,list:[]};
+function padCur(){var v=parseInt(pad.str||'0',10);return pad.neg?-v:v;}
+function padTotal(){return pad.list.reduce(function(a,b){return a+b;},0)+padCur();}
+function renderPad(){
+  var p=P(pad.pid);if(!p)return;
+  $('padWho').textContent=p.name;
+  $('padNow').textContent=String(totalOf(p));
+  $('padVal').textContent=(pad.neg?'−':'+')+(pad.str||'0');
+  var l=$('padList');
+  if(pad.list.length){
+    var all=pad.list.concat(pad.str?[padCur()]:[]);
+    l.hidden=false;
+    l.textContent=all.map(function(v,i){return (i===0?(v<0?'−':''):(v<0?' − ':' + '))+Math.abs(v);}).join('')+' = '+padTotal();
+  }else{l.hidden=true;l.textContent='';}
+  var t=padTotal();
+  $('padOk').textContent=t?('Aplicar '+sgn(t)):'Aplicar';
+}
+function openPad(pid){
+  if(!P(pid)||reveal)return;
+  pad={pid:pid,str:'',neg:false,list:[]};
+  renderPad();padSheet.showModal();
+}
+function padKey(k){
+  if(k==='±')pad.neg=!pad.neg;
+  else if(k==='⌫'){
+    if(pad.str)pad.str=pad.str.slice(0,-1);
+    else if(pad.list.length){var v=pad.list.pop();pad.neg=v<0;pad.str=String(Math.abs(v));}
+    else pad.neg=false;
+  }
+  else if(/^[0-9]$/.test(k)){if(pad.str.length<5)pad.str=(pad.str==='0'?'':pad.str)+k;}
+  renderPad();
+}
+function padMore(){
+  if(pad.str&&padCur()!==0){pad.list.push(padCur());buzz();}
+  pad.str='';pad.neg=false;renderPad();
+}
+function padApply(){var t=padTotal(),pid=pad.pid;padSheet.close();if(t)quickAdd(pid,t);}
+$('padKeys').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-k]');if(b)padKey(b.getAttribute('data-k'));});
+$('padMore').addEventListener('click',padMore);
+$('padOk').addEventListener('click',padApply);
+$('padCancel').addEventListener('click',function(){padSheet.close();});
+$('padEdit').addEventListener('click',function(){var pid=pad.pid;padSheet.close();openEdit(pid);});
+/* con teclado físico: números, Retroceso, «-» cambia el signo, «+» acumula, Intro aplica */
+padSheet.addEventListener('keydown',function(e){
+  if(/^[0-9]$/.test(e.key)){e.preventDefault();padKey(e.key);}
+  else if(e.key==='Backspace'){e.preventDefault();padKey('⌫');}
+  else if(e.key==='-'){e.preventDefault();padKey('±');}
+  else if(e.key==='+'){e.preventDefault();padMore();}
+  else if(e.key==='Enter'&&!(e.target&&e.target.tagName==='BUTTON')){e.preventDefault();padApply();}
+});
+
+/* ── Rondas ── */
+function addRound(){
+  if(state.players.length===0){$('addPlayerBtn').click();return;}
+  markActivity();
+  var r={scores:{}};
+  if(state.opts.roundMode==='capturar'){
+    /* la puntuación actual pasa a la ronda y SE RESETEA a 0 */
+    var prev={};
+    state.players.forEach(function(p){
+      prev[p.id]=num(p.extra);
+      r.scores[p.id]=String(num(p.extra));
+      p.extra=0;
+    });
+    state.rounds.push(r);
+    save();renderAll();
+    var wrapEl=document.querySelector('.tableWrap');
+    if(wrapEl)wrapEl.scrollLeft=wrapEl.scrollWidth;
+    showUndo('Ronda '+state.rounds.length+' guardada',function(){
+      var i=state.rounds.indexOf(r);if(i<0)return;
+      state.rounds.splice(i,1);
+      /* lo sumado después de guardar la ronda se conserva */
+      state.players.forEach(function(p){if(prev.hasOwnProperty(p.id))p.extra=prev[p.id]+num(p.extra);});
+      save();renderAll();
+    });
+  }else{
+    state.rounds.push(r);
+    save();setTab('rondas');
+    var firstRow=$('bodyRows').querySelector('tr');
+    if(firstRow){
+      var inputs=firstRow.querySelectorAll('.scoreInput');
+      var inp=inputs[inputs.length-1];
+      if(inp){try{inp.scrollIntoView({block:'nearest',inline:'end'});}catch(e){}inp.focus();}
+    }
+  }
+}
+$('addRoundBtn').addEventListener('click',addRound);
+
+/* ── Nueva partida (archiva en historial) ── */
+$('newGameBtn').addEventListener('click',function(){
+  var hasData=state.rounds.length>0||state.players.some(function(p){return num(p.extra)!==0;});
+  $('ngArchiveNote').hidden=!hasData;
+  newGameSheet.showModal();
+});
+/* Suma +1 de victoria general a cada líder empatado, una sola vez por partida.
+   Solo cuenta si de verdad hay puntuación en juego. */
+function countWin(){
+  if(state.winCounted)return;
+  var scored=state.rounds.length>0||state.players.some(function(p){return num(p.extra)!==0;});
+  if(!scored||state.players.length===0)return;
+  var sorted=sortedPlayers();
+  var bestT=totalOf(sorted[0]);
+  sorted.forEach(function(p){
+    if(totalOf(p)===bestT)p.wins=(p.wins||0)+1;
+  });
+  state.winCounted=true;
+}
+
+function resetGame(mode){
+  /* mode: 'keepAll' (mantiene victorias) · 'resetWins' (pone victorias a 0) · 'wipe' (borra jugadores) */
+  var hasData=state.rounds.length>0||state.players.some(function(p){return num(p.extra)!==0;});
+  var proceed=function(){
+    if(hasData)countWin();   /* la victoria se apunta SOLO si se pudo archivar */
+    state.rounds=[];
+    state.startT=null;
+    state.goalHit=false;
+    state.winCounted=false;
+    state.turnSet=false;state.turnId=null;state.firstId=null;ui.turnDelta=0;
+    if(mode==='wipe')state.players=[];
+    else state.players.forEach(function(p){
+      p.extra=0;
+      if(mode==='resetWins')p.wins=0;
+    });
+    save();renderAll();
+    showNotice(mode==='wipe'?'Partida reiniciada de cero.'
+      :mode==='resetWins'?'Puntuaciones y victorias a cero.':'Nueva partida lista.');
+  };
+  if(!hasData){proceed();return;}
+  /* Si no se puede archivar, NO se borra nada (ni se cuenta la victoria): la partida
+     sigue intacta y el usuario puede reintentar. Cierra el residual de v16. */
+  archiveGame().then(proceed).catch(function(){
+    showNotice('No pude guardar la partida en el historial, así que no he borrado nada. Inténtalo otra vez.');
+  });
+}
+$('ngKeepAll').addEventListener('click',function(){newGameSheet.close();resetGame('keepAll');});
+$('ngKeepNames').addEventListener('click',function(){newGameSheet.close();resetGame('resetWins');});
+$('ngWipe').addEventListener('click',function(){newGameSheet.close();resetGame('wipe');});
+$('ngCancel').addEventListener('click',function(){newGameSheet.close();});
+function archiveGame(){
+  var entry={
+    t:Date.now(),
+    game:(state.gameName||'').trim()||'Partida',
+    low:lowWins(),
+    dur:state.startT!==null?(Date.now()-state.startT):null,
+    players:sortedPlayers().map(function(p){return {name:p.name,total:totalOf(p)};})
+  };
+  if(entry.players.length){
+    var bestT=entry.players[0].total;
+    entry.winner=entry.players.filter(function(x){return x.total===bestT;})
+      .map(function(x){return x.name;}).join(' y ');
+  }
+  return histReadSafe().then(function(h){h.push(entry);histSave(h);});
+}
+
+/* ── Historial ── */
+function renderHist(h){
+  var stats={};
+  h.forEach(function(g){
+    g.players.forEach(function(pl){
+      if(!stats[pl.name])stats[pl.name]={j:0,g:0,sum:0,best:null,racha:0,rachaViva:true};
+      var s=stats[pl.name];
+      s.j++;s.sum+=pl.total;
+      /* récord: el mejor según el modo de esa partida */
+      if(s.best===null)s.best=pl.total;
+      else s.best=g.low?Math.min(s.best,pl.total):Math.max(s.best,pl.total);
+    });
+    if(g.winner)g.winner.split(' y ').forEach(function(w){
+      if(stats[w])stats[w].g++;
+    });
+  });
+  /* racha de victorias actual: partidas seguidas ganadas, contando desde la última */
+  h.slice().reverse().forEach(function(g){
+    var winners=(g.winner||'').split(' y ');
+    g.players.forEach(function(pl){
+      var s=stats[pl.name];
+      if(!s||!s.rachaViva)return;
+      if(winners.indexOf(pl.name)>-1)s.racha++;
+      else s.rachaViva=false;
+    });
+  });
+  var names=Object.keys(stats).sort(function(a,b){return stats[b].g-stats[a].g||stats[b].j-stats[a].j;});
+
+  var durs=h.filter(function(g){return typeof g.dur==='number';}).map(function(g){return g.dur;});
+  var durAvg=durs.length?durs.reduce(function(a,b){return a+b;},0)/durs.length:null;
+
+  $('histStats').innerHTML=h.length===0?'':(
+    '<div class="histStats">'
+    +'<div class="hs"><span>Partidas registradas</span><b>'+h.length
+      +(durAvg!==null?' · media '+fmtDur(durAvg):'')+'</b></div>'
+    +names.map(function(n){
+      var s=stats[n];
+      var media=Math.round(s.sum/s.j);
+      return '<div class="hs" style="border-top:1px dashed var(--line);margin-top:6px;padding-top:8px">'
+        +'<span><b style="font-family:var(--disp)">'+esc(n)+'</b>'
+        +(s.racha>=2?' <span style="color:var(--goldTxt)">🔥 '+s.racha+' seguidas</span>':'')+'</span>'
+        +'<b>'+s.g+' 🏆 / '+s.j+'</b></div>'
+        +'<div class="hs" style="font-size:12px;color:var(--faint)"><span>media '+media+' · récord '+s.best+'</span><span></span></div>';
+    }).join('')+'</div>');
+  $('histList').innerHTML=h.length===0
+    ?'<div class="histEmpty">Todavía no hay partidas guardadas.<br>Al pulsar ⟲ la partida en curso se archiva aquí.</div>'
+    :h.slice().reverse().map(function(g){
+      var d=new Date(g.t);
+      var fecha=d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'})+' · '+
+                d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+      var linea=g.players.map(function(pl){return esc(pl.name)+' '+pl.total;}).join(' · ');
+      return '<div class="histItem">'+
+        '<div class="hdate">'+fecha+(g.low?' · gana el más bajo':'')+(typeof g.dur==='number'?' · ⏱ '+fmtDur(g.dur):'')+'</div>'+
+        '<div class="hgame">'+esc(g.game)+'</div>'+
+        (g.winner?'<div class="hwin">🏆 '+esc(g.winner)+'</div>':'')+
+        '<div class="hline">'+linea+'</div></div>';
+    }).join('');
+}
+function openHist(){histLoad().then(function(h){renderHist(h);histSheet.showModal();});}
+$('histOpen').addEventListener('click',function(){optSheet.close();openHist();});
+$('histClose').addEventListener('click',function(){histSheet.close();});
+$('histClear').addEventListener('click',function(){
+  if(!confirm('Borrar TODO el historial de partidas. Esto no se puede deshacer.'))return;
+  histSave([]);renderHist([]);
+});
+
+/* ── Azar de calidad: crypto.getRandomValues con muestreo por rechazo
+      (uniforme de verdad; si no está disponible, cae a Math.random) ── */
+function rnd(n){
+  if(window.crypto&&crypto.getRandomValues){
+    var max=Math.floor(4294967296/n)*n,u32=new Uint32Array(1),x;
+    do{crypto.getRandomValues(u32);x=u32[0];}while(x>=max);
+    return x%n;
+  }
+  return Math.floor(Math.random()*n);
+}
+
+/* ── Sorteo de quién empieza (v18: se resalta sobre la propia vista) ── */
+var dicing=false;
+function sortearInicial(){
+  if(dicing||reveal)return;
+  if(state.players.length<2){showNotice('Hacen falta al menos 2 jugadores para sortear.');return;}
+  dicing=true;
+  var chosen=state.players[rnd(state.players.length)];
+  var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function finish(){
+    ui.pickId=null;
+    state.firstId=chosen.id;state.turnId=chosen.id;state.turnSet=true;ui.turnDelta=0;
+    save();renderAll();
+    /* anuncio a pantalla completa, para que lo vea toda la mesa */
+    var ov=$('startOverlay');
+    $('ovKicker').textContent='Empieza';
+    $('ovSub').hidden=true;
+    $('ovName').textContent=chosen.name;
+    $('ovName').style.color=safeColor(chosen.color);
+    ov.hidden=false;
+    $('announce').textContent='Empieza '+chosen.name;
+    var ovTimer=setTimeout(closeOv,8000);
+    function closeOv(){
+      clearTimeout(ovTimer);
+      ov.hidden=true;
+      ov.removeEventListener('click',closeOv);
+      dicing=false;
+    }
+    ov.addEventListener('click',closeOv);
+  }
+  if(reduced){finish();return;}
+  var i=0,ticks=0,maxTicks=14+rnd(6);
+  var iv=setInterval(function(){
+    ui.pickId=state.players[i%state.players.length].id;renderView();
+    i++;ticks++;
+    if(ticks>=maxTicks){clearInterval(iv);finish();}
+  },90);
+}
+
+/* ── Dados (v18): tipo y cantidad se guardan en la partida y en la memoria por juego ── */
+var rollLog=[];
+function doRoll(){
+  if(ui.rolling||reveal)return;
+  var n=state.opts.diceN,d=state.opts.die,code=dcode();
+  function gen(){var v=[];for(var i=0;i<n;i++)v.push(1+rnd(d));return v;}
+  function sum(v){return v.reduce(function(a,b){return a+b;},0);}
+  function fin(vals){
+    ui.rolling=false;
+    var s=sum(vals);
+    ui.lastRoll={code:code,vals:vals,sum:s};
+    rollLog.unshift({t:n+'×d'+d,v:vals.join('+'),s:s});
+    if(rollLog.length>12)rollLog.pop();
+    renderRollSheet();renderBottom();
+    if(state.opts.vibrate&&navigator.vibrate){try{navigator.vibrate(15);}catch(e){}}
+    $('announce').textContent='Tirada de '+n+' d'+d+': total '+s;
+    if(!diceSheet.open){
+      showNotice('🎲 '+(n>1?vals.join(' + ')+' = '+s:'Sale '+s));
+      if(!state.opts.hints.dice)setTimeout(function(){hintOnce('dice','Consejo: mantén pulsado el dado para cambiar el tipo y la cantidad.');},2600);
+    }
+  }
+  var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced){fin(gen());return;}
+  ui.rolling=true;var k=0;
+  var iv=setInterval(function(){
+    var v=gen();ui.lastRoll={code:code,vals:v,sum:sum(v)};renderBottom();
+    if(++k>=6){clearInterval(iv);fin(gen());}
+  },75);
+}
+function renderRollSheet(){
+  var r=rollFor(),ok=r&&!ui.rolling;
+  $('rollDetail').textContent=ok?(dcode()+': '+r.vals.join(' + ')):'Resultado';
+  $('rollSum').textContent=ok?String(r.sum):'–';
+  var h=$('rollHist');
+  h.hidden=rollLog.length===0;
+  h.innerHTML=rollLog.map(function(x){return '<div class="cl"><span>'+x.t+': '+x.v+'</span><span>→ '+x.s+'</span></div>';}).join('');
+}
+function syncDiceSheet(){
+  [].slice.call($('dieChips').querySelectorAll('[data-die]')).forEach(function(c){
+    var on=+c.dataset.die===state.opts.die;
+    c.classList.toggle('on',on);c.setAttribute('aria-pressed',on);
+  });
+  $('diceCount').value=String(state.opts.diceN);
+  $('rollBtn').textContent='Tirar '+dcode();
+  renderRollSheet();
+}
+function setDice(die,n){
+  if(DIE_TYPES.indexOf(die)>-1)state.opts.die=die;
+  if(typeof n==='number'&&!isNaN(n))state.opts.diceN=Math.max(1,Math.min(10,Math.round(n)));
+  save();profStore();syncDiceSheet();renderBottom();syncViewOpts();
+}
+function openDice(){
+  state.opts.hints.dice=true;save();
+  syncDiceSheet();
+  if(!diceSheet.open)diceSheet.showModal();
+}
+$('diceClose').addEventListener('click',function(){diceSheet.close();});
+$('dieChips').addEventListener('click',function(e){
+  var c=e.target.closest&&e.target.closest('[data-die]');
+  if(c)setDice(+c.dataset.die);
+});
+$('diceCount').addEventListener('input',function(){var n=num(this.value);if(n>=1)setDice(null,n);});
+$('diceCount').addEventListener('change',function(){setDice(null,num(this.value)||1);});
+document.addEventListener('click',function(e){
+  var step=e.target.dataset&&e.target.dataset.step;
+  if(step&&step.indexOf('diceCount')===0)setDice(null,num($('diceCount').value));
+});
+$('rollBtn').addEventListener('click',doRoll);
+
+/* ── Modo revelación ── */
+$('revealBtn').addEventListener('click',function(){
+  if(state.players.length<2){showNotice('Hacen falta al menos 2 jugadores.');return;}
+  reveal={order:sortedPlayers().reverse(),n:0}; /* [0]=último puesto */
+  optSheet.close();
+  ui.tab='partida';
+  document.body.classList.add('revealing');
+  renderAll();syncRevealBtn();
+  $('diceResult').textContent='';
+  $('announce').textContent='Modo revelación: totales ocultos.';
+});
+function syncRevealBtn(){
+  if(!reveal)return;
+  var total=reveal.order.length;
+  if(reveal.n>=total){$('revealNext').textContent='Terminar';return;}
+  var nextPos=rankMap()[reveal.order[reveal.n].id];
+  $('revealNext').textContent=nextPos===1?'Revelar al ganador 🏆':'Revelar el '+nextPos+'º puesto';
+}
+$('revealNext').addEventListener('click',function(){
+  if(!reveal)return;
+  var total=reveal.order.length;
+  if(reveal.n>=total){exitReveal();return;}
+  var p=reveal.order[reveal.n];
+  reveal.n++;
+  var pos=rankMap()[p.id];
+  renderReveal();
+  var line=(pos===1?'🏆 Ganador: ':pos+'º puesto: ')+p.name+' — '+totalOf(p)+' puntos';
+  $('diceResult').textContent=line;
+  $('announce').textContent=line;
+  syncRevealBtn();
+});
+$('revealExit').addEventListener('click',exitReveal);
+function exitReveal(){
+  reveal=null;
+  document.body.classList.remove('revealing');
+  $('diceResult').textContent='';
+  renderAll();
+}
+
+/* ── Mantener la pantalla encendida (Wake Lock API) ── */
+var wl=null;
+var wlSupported=('wakeLock' in navigator);
+function requestWL(){
+  if(!wlSupported||!state.opts.wakeLock||wl)return;
+  navigator.wakeLock.request('screen').then(function(s){
+    wl=s;
+    s.addEventListener('release',function(){wl=null;});
+  }).catch(function(){/* denegado (p. ej. batería baja): seguimos sin bloqueo */});
+}
+function releaseWL(){
+  if(wl){wl.release().catch(function(){});wl=null;}
+}
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible')requestWL();
+});
+
+/* ── Temporizador de turno ── */
+var tt={endAt:null,left:0,running:false,iv:null,ac:null};
+function ttFmt(s){
+  s=Math.max(0,Math.ceil(s));
+  return s>=60?(Math.floor(s/60)+':'+String(s%60).padStart(2,'0')):(s+' s');
+}
+/* lo que se muestra: si está en pausa a mitad, lo que queda; si no, la duración */
+function ttShown(){
+  if(tt.running)return tt.left;
+  if(tt.left>0&&tt.left<state.opts.turnSecs)return tt.left;
+  return state.opts.turnSecs;
+}
+function ttRender(){
+  var shown=ttShown(),warn=tt.running&&tt.left<=10,i,n;
+  var d=$('ttDisplay');
+  d.textContent=ttFmt(shown);
+  d.classList.toggle('warn',warn);
+  var label=tt.running?'Pausar':(shown<state.opts.turnSecs?'Seguir':'Iniciar');
+  $('ttStart').textContent=label;
+  var p=Math.max(0,Math.min(1,shown/Math.max(1,state.opts.turnSecs)));
+  n=document.querySelectorAll('[data-tl]');for(i=0;i<n.length;i++)n[i].textContent=n[i].hasAttribute('data-short')?String(Math.max(0,Math.ceil(shown))):ttFmt(shown);
+  n=document.querySelectorAll('[data-tp]');for(i=0;i<n.length;i++)n[i].style.setProperty('--p',p);
+  n=document.querySelectorAll('[data-ts]');for(i=0;i<n.length;i++)n[i].textContent=label;
+  n=document.querySelectorAll('[data-tlive]');for(i=0;i<n.length;i++){n[i].classList.toggle('live',tt.running);n[i].classList.toggle('warn',warn);}
+}
+function ttSyncControls(){
+  $('ttSlider').value=String(Math.min(300,Math.max(5,state.opts.turnSecs)));
+  $('ttSliderVal').textContent=state.opts.turnSecs+' segundos';
+  [].slice.call(timerSheet.querySelectorAll('[data-tt]')).forEach(function(c){
+    c.classList.toggle('on',+c.dataset.tt===state.opts.turnSecs);
+  });
+  ttRender();
+}
+function ttSetDur(s){
+  state.opts.turnSecs=s;save();profStore();
+  if(tt.running){tt.endAt=Date.now()+s*1000;tt.left=s;}
+  else tt.left=0;   /* en pausa: la nueva duración empieza de cero */
+  ttSyncControls();syncViewOpts();
+}
+function ttBeep(){
+  try{
+    if(!tt.ac)tt.ac=new (window.AudioContext||window.webkitAudioContext)();
+    var t0=tt.ac.currentTime;
+    [0,0.25].forEach(function(off){
+      var o=tt.ac.createOscillator(),g=tt.ac.createGain();
+      o.frequency.value=880;o.connect(g);g.connect(tt.ac.destination);
+      g.gain.setValueAtTime(0.0001,t0+off);
+      g.gain.exponentialRampToValueAtTime(0.25,t0+off+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+off+0.18);
+      o.start(t0+off);o.stop(t0+off+0.2);
+    });
+  }catch(e){}
+}
+function ttFinish(){
+  ttStop();
+  if(state.opts.vibrate&&navigator.vibrate){try{navigator.vibrate([200,100,200]);}catch(e){}}
+  ttBeep();
+  showNotice('⏱ Tiempo de turno agotado.');
+  $('announce').textContent='Tiempo de turno agotado.';
+  [].forEach.call(document.querySelectorAll('[data-tlive]'),function(b){b.classList.add('done');});
+  setTimeout(function(){[].forEach.call(document.querySelectorAll('[data-tlive]'),function(b){b.classList.remove('done');});},2600);
+}
+function ttTick(){
+  tt.left=(tt.endAt-Date.now())/1000;
+  if(tt.left<=0){ttFinish();return;}
+  ttRender();
+}
+function ttStart(){
+  if(!tt.ac){try{tt.ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  tt.running=true;
+  tt.endAt=Date.now()+(tt.left>0&&tt.left<state.opts.turnSecs?tt.left:state.opts.turnSecs)*1000;
+  tt.iv=setInterval(ttTick,250);
+  ttTick();
+}
+function ttStop(){
+  tt.running=false;
+  clearInterval(tt.iv);tt.iv=null;
+  ttRender();
+}
+/* un toque en el temporizador de la pantalla principal: iniciar / pausar */
+function ttToggle(){
+  if(tt.running){tt.left=(tt.endAt-Date.now())/1000;ttStop();}
+  else{
+    ttStart();
+    if(!state.opts.hints.timer)setTimeout(function(){hintOnce('timer','Consejo: mantén pulsado el temporizador para cambiar la duración del turno.');},1200);
+  }
+}
+function openTimer(){
+  state.opts.hints.timer=true;save();
+  ttSyncControls();
+  if(!timerSheet.open)timerSheet.showModal();
+}
+$('ttClose').addEventListener('click',function(){timerSheet.close();});
+$('ttStart').addEventListener('click',ttToggle);
+$('ttReset').addEventListener('click',function(){
+  ttStop();tt.left=0;ttSyncControls();
+});
+$('ttSlider').addEventListener('input',function(){
+  ttSetDur(+this.value);
+});
+timerSheet.addEventListener('click',function(e){
+  var v=e.target.dataset&&e.target.dataset.tt;
+  if(v)ttSetDur(+v);
+});
+
+/* ── Copia de seguridad ── */
+function download(name,text,mime){
+  var a=document.createElement('a');
+  var url=URL.createObjectURL(new Blob([text],{type:mime}));
+  a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url);},2000);
+}
+function csvCell(v){return '"'+String(v).replace(/"/g,'""')+'"';}
+/* Un objeto de copia (importada o automática) es válido si trae el sello de la app
+   y un estado con jugadores. Escribe las 4 claves, recarga y repinta. */
+function isBackupObject(o){return !!(o&&o.app==='marcador-juegos-mesa'&&o.state&&Array.isArray(o.state.players));}
+function applyBackupObject(o){
+  if(!isBackupObject(o))return Promise.reject(new Error('copia no válida'));
+  var writes=[window.storage.set(KEY,JSON.stringify(o.state))];
+  if(o.theme)writes.push(window.storage.set(THEME_KEY,JSON.stringify(o.theme)));
+  if(Array.isArray(o.history))writes.push(window.storage.set(KEY_H,JSON.stringify(o.history)));
+  if(o.profiles)writes.push(window.storage.set(KEY_P,JSON.stringify(o.profiles)));
+  return Promise.all(writes).then(function(){
+    return Promise.all([load(),loadTheme(),profLoad()]);
+  }).then(function(){
+    $('gameName').value=state.gameName;
+    applyTheme();renderAll();syncOpts();ttSyncControls();
+  });
+}
+$('bkDownload').addEventListener('click',function(){
+  histReadSafe().then(function(h){
+    var payload={app:'marcador-juegos-mesa',version:APP_VERSION,fecha:new Date().toISOString(),
+                 state:state,theme:THEME,history:h,profiles:profiles};
+    var d=new Date(),f=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    download('marcador-copia_'+f+'.json',JSON.stringify(payload,null,1),'application/json');
+    showNotice('Copia descargada.');
+  }).catch(function(){showNotice('No pude leer el historial para la copia. Inténtalo otra vez.');});
+});
+$('bkImport').addEventListener('click',function(){$('bkFile').click();});
+$('bkFile').addEventListener('change',function(){
+  var f=this.files&&this.files[0];
+  this.value='';
+  if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    var o;
+    try{o=JSON.parse(rd.result);}catch(e){showNotice('El archivo no es una copia válida.');return;}
+    if(!isBackupObject(o)){showNotice('El archivo no es una copia válida.');return;}
+    if(!confirm('Importar la copia sustituirá la partida actual, el historial y los ajustes. Continuar?'))return;
+    applyBackupObject(o).then(function(){
+      showNotice('Copia importada correctamente.');
+    }).catch(function(){showNotice('El archivo no es una copia válida.');});
+  };
+  rd.readAsText(f);
+});
+$('bkCsv').addEventListener('click',function(){
+  histReadSafe().then(function(h){
+    if(h.length===0){showNotice('El historial está vacío.');return;}
+    var rows=[['fecha','juego','duracion_min','modo','jugador','puntos','puesto','ganador'].join(';')];
+    h.forEach(function(g){
+      var d=new Date(g.t).toISOString().slice(0,16).replace('T',' ');
+      var durM=(typeof g.dur==='number')?Math.round(g.dur/60000):'';
+      var winners=(g.winner||'').split(' y ');
+      /* puesto por competición dentro de la partida guardada */
+      var prevT=null,prevPos=0;
+      g.players.forEach(function(pl,i){
+        var pos=(prevT!==null&&pl.total===prevT)?prevPos:(i+1);
+        prevT=pl.total;prevPos=pos;
+        rows.push([csvCell(d),csvCell(g.game),durM,csvCell(g.low?'gana el más bajo':'gana el más alto'),
+                   csvCell(pl.name),pl.total,pos,winners.indexOf(pl.name)>-1?1:0].join(';'));
+      });
+    });
+    var dd=new Date(),f=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0');
+    download('marcador-historial_'+f+'.csv','\uFEFF'+rows.join('\r\n'),'text/csv;charset=utf-8');
+    showNotice('Historial exportado como CSV.');
+  }).catch(function(){showNotice('No pude leer el historial para el CSV. Inténtalo otra vez.');});
+});
+
+/* ── Opciones ── */
+function openOptions(){
+  syncOpts();syncViewOpts();renderThemeBody();renderAutoBk();renderVersion();
+  optSheet.showModal();
+}
+function syncViewOpts(){
+  [].slice.call(document.querySelectorAll('#optSheet [data-act="view"]')).forEach(function(b){
+    var on=b.getAttribute('data-v')===state.opts.view;
+    b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);
+  });
+  var g=(state.gameName||'').trim();
+  $('viewHint').textContent=g?('Se recuerda para «'+g+'», junto con los dados y el tiempo de turno.')
+    :'Ponle nombre a la partida para que la vista se recuerde con ese juego.';
+  $('optDiceVal').textContent=dcode();
+  $('optTimerVal').textContent=fmtSecs(state.opts.turnSecs);
+}
+$('optDice').addEventListener('click',function(){optSheet.close();openDice();});
+$('optTimer').addEventListener('click',function(){optSheet.close();openTimer();});
+$('optRounds').addEventListener('click',function(){optSheet.close();setTab('rondas');});
+$('optClose').addEventListener('click',function(){optSheet.close();});
+function syncOpts(){
+  $('rmCapturar').classList.toggle('on',state.opts.roundMode==='capturar');
+  $('rmVacia').classList.toggle('on',state.opts.roundMode==='vacia');
+  $('rmCapturar').setAttribute('aria-pressed',state.opts.roundMode==='capturar');
+  $('rmVacia').setAttribute('aria-pressed',state.opts.roundMode==='vacia');
+  $('wmAlto').classList.toggle('on',!lowWins());
+  $('wmBajo').classList.toggle('on',lowWins());
+  $('wmAlto').setAttribute('aria-pressed',!lowWins());
+  $('wmBajo').setAttribute('aria-pressed',lowWins());
+  $('coChip').classList.toggle('on',state.opts.closeOutside);
+  $('coChip').setAttribute('aria-pressed',state.opts.closeOutside);
+  $('wlChip').classList.toggle('on',wlSupported&&state.opts.wakeLock);
+  $('wlChip').setAttribute('aria-pressed',wlSupported&&state.opts.wakeLock);
+  $('wlChip').disabled=!wlSupported;
+  $('wlHint').hidden=wlSupported;
+  var vibOk=!!navigator.vibrate;
+  $('vibChip').classList.toggle('on',vibOk&&state.opts.vibrate);
+  $('vibChip').setAttribute('aria-pressed',vibOk&&state.opts.vibrate);
+  $('vibChip').disabled=!vibOk;
+  $('goalInput').value=String(state.opts.goal||0);
+}
+function applyGoal(){
+  var g=num($('goalInput').value);
+  if(g<0)g=0;
+  $('goalInput').value=String(g);
+  if(g!==state.opts.goal){
+    state.opts.goal=g;
+    state.goalHit=false; /* un objetivo nuevo puede volver a anunciarse */
+    save();profStore();renderGoalTag();checkGoal();
+  }
+}
+$('goalInput').addEventListener('input',applyGoal);
+document.addEventListener('click',function(e){
+  var step=e.target.dataset&&e.target.dataset.step;
+  if(step&&step.indexOf('goalInput')===0)applyGoal();
+});
+document.addEventListener('click',function(e){
+  var rm=e.target.closest&&e.target.closest('[data-roundmode]');
+  if(rm){state.opts.roundMode=rm.dataset.roundmode;save();profStore();syncOpts();return;}
+  var wm=e.target.closest&&e.target.closest('[data-winmode]');
+  if(wm){state.opts.winMode=wm.dataset.winmode;state.goalHit=false;save();profStore();syncOpts();renderAll();return;}
+});
+$('coChip').addEventListener('click',function(){
+  state.opts.closeOutside=!state.opts.closeOutside;save();syncOpts();
+});
+$('wlChip').addEventListener('click',function(){
+  if(!wlSupported)return;
+  state.opts.wakeLock=!state.opts.wakeLock;
+  save();syncOpts();
+  if(state.opts.wakeLock)requestWL();else releaseWL();
+});
+$('vibChip').addEventListener('click',function(){
+  if(!navigator.vibrate)return;
+  state.opts.vibrate=!state.opts.vibrate;
+  save();syncOpts();
+  buzz();
+});
+
+/* Delegación: tabla de rondas (puntos por ronda, borrar ronda, editar desde el nombre) */
+document.addEventListener('input',function(e){
+  if(e.target.classList.contains('scoreInput')){
+    var ri=+e.target.dataset.round,pid=e.target.dataset.player;
+    if(!state.rounds[ri])return;
+    state.rounds[ri].scores[pid]=e.target.value;
+    markActivity();
+    save();renderTotals();
+  }
+});
+document.addEventListener('click',function(e){
+  var drEl=e.target.closest&&e.target.closest('[data-delround]');
+  if(drEl){
+    var dr=+drEl.dataset.delround;
+    var removed=state.rounds.splice(dr,1)[0];
+    save();renderAll();
+    showUndo('Se ha eliminado la ronda '+(dr+1),function(){
+      state.rounds.splice(dr,0,removed);
+      save();renderAll();
+    });
+    return;
+  }
+  var edit=e.target.closest&&e.target.closest('[data-edit]');
+  if(edit){openEdit(edit.dataset.edit);return;}
+});
+
+/* ── Mantener pulsado (0,48 s) = ajustar · un toque normal = la acción ──
+   dado → hoja de dados · temporizador → hoja de tiempo · jugador → editar */
+var lp={t:null,x:0,y:0,eat:false};
+function longPress(k){
+  if(state.opts.vibrate&&navigator.vibrate){try{navigator.vibrate(20);}catch(e){}}
+  if(k==='dice')openDice();
+  else if(k==='timer')openTimer();
+  else if(k.indexOf('p:')===0)openEdit(k.slice(2));
+}
+document.addEventListener('pointerdown',function(e){
+  lp.eat=false;clearTimeout(lp.t);
+  var el=e.target.closest&&e.target.closest('[data-lp]');
+  if(!el||reveal)return;
+  if(typeof e.button==='number'&&e.button>0)return;
+  lp.x=e.clientX||0;lp.y=e.clientY||0;
+  var k=el.getAttribute('data-lp');
+  lp.t=setTimeout(function(){lp.eat=true;longPress(k);},LP_MS);
+});
+document.addEventListener('pointerup',function(){clearTimeout(lp.t);},true);
+document.addEventListener('pointercancel',function(){clearTimeout(lp.t);},true);
+document.addEventListener('pointermove',function(e){
+  if(Math.abs((e.clientX||0)-lp.x)>10||Math.abs((e.clientY||0)-lp.y)>10)clearTimeout(lp.t);
+},true);
+document.addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.closest('[data-lp]'))e.preventDefault();});
+/* el clic que llega al soltar una pulsación larga NO ejecuta la acción normal */
+document.addEventListener('click',function(e){
+  if(!lp.eat)return;
+  if(e.target.closest&&e.target.closest('[data-lp]')){lp.eat=false;e.stopPropagation();e.preventDefault();}
+},true);
+
+/* ── Acciones de la pantalla principal (data-act). Lista cerrada: cada valor
+      tiene su caso; un data-act sin caso no hace nada (lo vigila una prueba). ── */
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-act]');if(!b)return;
+  var a=b.getAttribute('data-act'),id=b.getAttribute('data-id'),v=b.getAttribute('data-v');
+  switch(a){
+    case 'add':quickAdd(id,parseInt(v,10));break;
+    case 'pad':openPad(id);break;
+    case 'edit':openEdit(id);break;
+    case 'sel':setTurn(id);break;
+    case 'next':nextTurn();break;
+    case 'roll':doRoll();break;
+    case 'pick':sortearInicial();break;
+    case 'timer':ttToggle();break;
+    case 'step':setStep(parseInt(v,10));break;
+    case 'round':addRound();break;
+    case 'tab':setTab(v);break;
+    case 'hist':openHist();break;
+    case 'opts':openOptions();break;
+    case 'view':setView(v);break;
+    case 'addp':$('addPlayerBtn').click();break;
+  }
+});
+
+var gnTimer=null;
+$('gameName').addEventListener('input',function(){
+  state.gameName=this.value;save();
+  /* al dejar de escribir, aplica los ajustes guardados de ese juego */
+  clearTimeout(gnTimer);
+  gnTimer=setTimeout(profApply,900);
+});
+$('gameName').addEventListener('blur',function(){clearTimeout(gnTimer);profApply();});
+
+/* ══════════ TEMA (portado de rueda-color v45) ══════════ */
+var THEME={mode:'dark',dark:'#0E1116',light:'#F3F4F7',hc:false,ts:'n'};
+var THEME_KEY='marcador_theme_v1';
+var DARK_PRESETS=[
+ {n:'Negro azabache',hex:'#0E1116'},
+ {n:'Azul medianoche',hex:'#101A30'},
+ {n:'Gris oscuro',hex:'#17191E'},
+ {n:'Verde abeto',hex:'#0D1A16'},
+ {n:'Berenjena',hex:'#191024'},
+ {n:'Café',hex:'#1A1410'}
+];
+var LIGHT_PRESETS=[
+ {n:'Gris perla',hex:'#F3F4F7'},
+ {n:'Blanco puro',hex:'#FFFFFF'},
+ {n:'Crema',hex:'#FAF5EA'},
+ {n:'Sepia',hex:'#F3ECDC'},
+ {n:'Azul hielo',hex:'#EDF2FA'},
+ {n:'Salvia clara',hex:'#EEF4EE'}
+];
+function rgbOf(hex){var n=parseInt(hex.slice(1),16);return{r:n>>16,g:(n>>8)&255,b:n&255};}
+function toHex(x){return x.toString(16).padStart(2,'0');}
+function hslOf(hex){var c=rgbOf(hex),r=c.r/255,g=c.g/255,b=c.b/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),h,s,l=(mx+mn)/2;
+ if(mx===mn){h=s=0;}else{var d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);
+  if(mx===r)h=(g-b)/d+(g<b?6:0);else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h/=6;}
+ return{h:Math.round(h*360),s:Math.round(s*100),l:Math.round(l*100)};}
+function hslToHex(h,s,l){s/=100;l/=100;var k=function(n){return (n+h/30)%12;},a=s*Math.min(l,1-l),
+ f=function(n){var x=l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return Math.round(255*x);};
+ return '#'+toHex(f(0))+toHex(f(8))+toHex(f(4));}
+function relLum(hex){var c=rgbOf(hex);function ch(v){v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);}return 0.2126*ch(c.r)+0.7152*ch(c.g)+0.0722*ch(c.b);}
+function contrastRatio(a,b){var x=relLum(a),y=relLum(b),hi=Math.max(x,y),lo=Math.min(x,y);return (hi+0.05)/(lo+0.05);}
+function normHex(v){v=(v||'').trim();if(/^#?[0-9a-fA-F]{3}$/.test(v)){v=v.replace('#','');v=v[0]+v[0]+v[1]+v[1]+v[2]+v[2];}if(/^#?[0-9a-fA-F]{6}$/.test(v))return ('#'+v.replace('#','')).toUpperCase();return null;}
+function clampDarkBase(hex){var h=hslOf(hex);return hslToHex(h.h,Math.min(h.s,55),Math.min(h.l,16));}
+function clampLightBase(hex){var h=hslOf(hex);return hslToHex(h.h,Math.min(h.s,42),Math.max(h.l,86));}
+function shiftL(hex,dl){var h=hslOf(hex);return hslToHex(h.h,h.s,Math.max(0,Math.min(100,h.l+dl)));}
+function sysDark(){
+ if(window.matchMedia){try{return window.matchMedia('(prefers-color-scheme: dark)').matches;}catch(e){}}
+ return true;
+}
+function effMode(){return THEME.mode==='auto'?(sysDark()?'dark':'light'):THEME.mode;}
+/* --faint conforme a AA sobre cualquier base permitida (mismo algoritmo que la rueda) */
+function faintFor(base,dark){
+ var worst=dark?shiftL(base,4):shiftL(base,-3);
+ var c=rgbOf(dark?'#788395':'#626B79'),step=dark?2:-2,hex='';
+ for(var i=0;i<80;i++){
+  hex='#'+[c.r,c.g,c.b].map(function(v){return toHex(Math.max(0,Math.min(255,v)));}).join('');
+  if(contrastRatio(hex,worst)>=4.5&&contrastRatio(hex,base)>=4.5)return hex;
+  c.r+=step;c.g+=step;c.b+=step;
+ }
+ return dark?'#C7D0DC':'#333C49';
+}
+function applyTheme(){
+ var rt=document.documentElement,st=rt.style,mt=document.querySelector('meta[name="theme-color"]');
+ if(effMode()==='light'){
+  rt.classList.add('light');
+  var lb=clampLightBase(THEME.light||'#F3F4F7');
+  st.setProperty('--bg',lb);
+  st.setProperty('--surface',shiftL(lb,6));st.setProperty('--surface2',shiftL(lb,-3));
+  st.setProperty('--line','rgba(15,23,42,.08)');st.setProperty('--line2','rgba(15,23,42,.18)');
+  st.setProperty('--txt','#1B2430');st.setProperty('--muted','#5A6472');st.setProperty('--faint',faintFor(lb,false));
+  st.setProperty('--glow',shiftL(lb,5));
+  st.setProperty('--goldTxt','#7A5A0E');st.setProperty('--silverTxt','#5A6B80');
+  st.setProperty('--bronzeTxt','#8C4F1E');st.setProperty('--dangerTxt','#B23B3B');
+  st.setProperty('--okTxt','#1E7A4E');
+  if(mt)mt.setAttribute('content',lb);
+ }else{
+  rt.classList.remove('light');
+  var bg=clampDarkBase(THEME.dark||'#0E1116');
+  st.setProperty('--bg',bg);
+  st.setProperty('--surface',shiftL(bg,4));st.setProperty('--surface2',shiftL(bg,2));
+  st.setProperty('--line','rgba(255,255,255,.08)');st.setProperty('--line2','rgba(255,255,255,.15)');
+  st.setProperty('--txt','#EAEEF5');st.setProperty('--muted','#9AA4B4');st.setProperty('--faint',faintFor(bg,true));
+  st.setProperty('--glow',shiftL(bg,6));
+  st.setProperty('--goldTxt','#E6C35C');st.setProperty('--silverTxt','#B8C4D4');
+  st.setProperty('--bronzeTxt','#C88A5E');st.setProperty('--dangerTxt','#F07A7A');
+  st.setProperty('--okTxt','#4CC38A');
+  if(mt)mt.setAttribute('content',bg);
+ }
+ if(THEME.hc){
+  rt.classList.add('hc');
+  if(effMode()==='light'){
+   st.setProperty('--line','rgba(15,23,42,.35)');st.setProperty('--line2','rgba(15,23,42,.65)');
+   st.setProperty('--txt','#000000');st.setProperty('--muted','#333C49');st.setProperty('--faint','#4A5462');
+  }else{
+   st.setProperty('--line','rgba(255,255,255,.3)');st.setProperty('--line2','rgba(255,255,255,.6)');
+   st.setProperty('--txt','#FFFFFF');st.setProperty('--muted','#C7D0DC');st.setProperty('--faint','#9AA4B4');
+  }
+ }else rt.classList.remove('hc');
+ /* tamaño de texto: escala toda la interfaz, incluidos los objetivos táctiles */
+ var Z={n:'1',g:'1.12',xg:'1.25'};
+ try{document.body.style.zoom=Z[THEME.ts]||'1';document.documentElement.style.setProperty('--z',Z[THEME.ts]||'1');}catch(e){}
+ renderThemeBody();
+}
+if(window.matchMedia){
+ try{
+  var _mq=window.matchMedia('(prefers-color-scheme: dark)');
+  var _onSys=function(){if(THEME.mode==='auto')applyTheme();};
+  if(_mq.addEventListener)_mq.addEventListener('change',_onSys);
+  else if(_mq.addListener)_mq.addListener(_onSys);
+ }catch(e){}
+}
+function saveTheme(){try{window.storage.set(THEME_KEY,JSON.stringify(THEME));}catch(e){}}
+function loadTheme(){return window.storage.get(THEME_KEY).then(function(r){
+ if(r&&r.value){var o=JSON.parse(r.value);
+  if(o&&(o.mode==='dark'||o.mode==='light'||o.mode==='auto'))THEME.mode=o.mode;
+  if(o&&o.dark&&normHex(o.dark))THEME.dark=normHex(o.dark);
+  if(o&&o.light&&normHex(o.light))THEME.light=normHex(o.light);
+  if(o)THEME.hc=!!o.hc;
+  if(o&&(o.ts==='n'||o.ts==='g'||o.ts==='xg'))THEME.ts=o.ts;
+ }
+}).catch(function(){});}
+
+function thCtLine(txt,bg,dim){
+ var r=contrastRatio(txt,bg),rs=(Math.round(r*10)/10).toFixed(1);
+ var lvl=r>=7?'AAA':(r>=4.5?'AA':'✗');
+ var cls=r>=7?'ok':(r>=4.5?'mid':'ko');
+ return '<div class="thct '+cls+dim+'"><span>Contraste del texto</span><b>'+rs+':1 · '+lvl+'</b></div>';
+}
+function thSwRow(presets,curRaw,attr){
+ return presets.map(function(pp){
+  var on=curRaw===pp.hex.toUpperCase();
+  return '<button class="thsw'+(on?' on':'')+'" style="background:'+pp.hex+'" title="'+pp.n+'" aria-label="'+pp.n+'" data-'+attr+'="'+pp.hex+'"></button>';
+ }).join('');
+}
+function renderThemeBody(){
+ var el=$('themeBody');if(!el)return;
+ var curD=(normHex(THEME.dark||'#0E1116')||'#0E1116').toUpperCase();
+ var curL=(normHex(THEME.light||'#F3F4F7')||'#F3F4F7').toUpperCase();
+ var dimD=(THEME.mode==='light')?' thdim':'';
+ var dimL=(THEME.mode==='dark')?' thdim':'';
+ el.innerHTML=
+  '<div class="thmodes" role="group" aria-label="Modo de tema">'
+  +'<button class="tchip'+(THEME.mode==='light'?' on':'')+'" data-thmode="light">☀︎ Claro</button>'
+  +'<button class="tchip'+(THEME.mode==='dark'?' on':'')+'" data-thmode="dark">☾ Oscuro</button>'
+  +'<button class="tchip'+(THEME.mode==='auto'?' on':'')+'" data-thmode="auto">◐ Auto</button></div>'
+  +'<span class="thlab'+dimD+'">Color de fondo · oscuro</span>'
+  +'<div class="thsws'+dimD+'">'+thSwRow(DARK_PRESETS,THEME.mode==='light'?'':curD,'setdark')+'</div>'
+  +'<div class="thcustom'+dimD+'"><input type="color" id="thPickDark" value="'+curD+'" aria-label="Color oscuro personalizado"><span>A tu elección</span><span class="thhex">'+curD+'</span></div>'
+  +thCtLine('#EAEEF5',clampDarkBase(curD),dimD)
+  +'<span class="thlab'+dimL+'">Color de fondo · claro</span>'
+  +'<div class="thsws'+dimL+'">'+thSwRow(LIGHT_PRESETS,THEME.mode==='dark'?'':curL,'setlight')+'</div>'
+  +'<div class="thcustom'+dimL+'"><input type="color" id="thPickLight" value="'+curL+'" aria-label="Color claro personalizado"><span>A tu elección</span><span class="thhex">'+curL+'</span></div>'
+  +thCtLine('#1B2430',clampLightBase(curL),dimL)
+  +'<span class="thlab">Accesibilidad</span>'
+  +'<div class="thmodes"><button class="tchip'+(THEME.hc?' on':'')+'" aria-pressed="'+(THEME.hc?'true':'false')+'" data-thhc="1">Alto contraste</button></div>'
+  +'<span class="thlab">Tamaño del texto</span>'
+  +'<div class="thmodes" role="group" aria-label="Tamaño del texto">'
+  +'<button class="tchip'+(THEME.ts==='n'?' on':'')+'" data-thts="n">Normal</button>'
+  +'<button class="tchip'+(THEME.ts==='g'?' on':'')+'" data-thts="g">Grande</button>'
+  +'<button class="tchip'+(THEME.ts==='xg'?' on':'')+'" data-thts="xg">Muy grande</button></div>';
+}
+document.addEventListener('click',function(e){
+ var t=e.target;
+ if(t.dataset&&t.dataset.thmode){THEME.mode=t.dataset.thmode;saveTheme();applyTheme();return;}
+ if(t.dataset&&t.dataset.setdark){THEME.dark=t.dataset.setdark;if(THEME.mode!=='auto')THEME.mode='dark';saveTheme();applyTheme();return;}
+ if(t.dataset&&t.dataset.setlight){THEME.light=t.dataset.setlight;if(THEME.mode!=='auto')THEME.mode='light';saveTheme();applyTheme();return;}
+ if(t.dataset&&t.dataset.thhc){THEME.hc=!THEME.hc;saveTheme();applyTheme();return;}
+ if(t.dataset&&t.dataset.thts){THEME.ts=t.dataset.thts;saveTheme();applyTheme();return;}
+});
+document.addEventListener('change',function(e){
+ if(e.target.id==='thPickDark'){var h=normHex(e.target.value);if(h){THEME.dark=h;if(THEME.mode!=='auto')THEME.mode='dark';saveTheme();applyTheme();}}
+ if(e.target.id==='thPickLight'){var h2=normHex(e.target.value);if(h2){THEME.light=h2;if(THEME.mode!=='auto')THEME.mode='light';saveTheme();applyTheme();}}
+});
+
+/* ══════════ VERSIÓN Y REGISTRO (C2/A2) ══════════ */
+function renderVersion(){
+  var vn=$('verNow');if(vn)vn.textContent=APP_VERSION;
+  var vs=$('verSw');if(vs)vs.textContent='Service worker: '+swLine();
+  var el=$('verLog');if(!el)return;
+  el.innerHTML=CHANGELOG.map(function(c){
+    return '<div class="vrow"><span class="vn">'+esc(c.v)+'</span><span class="vt">'+esc(c.t)+'</span></div>';
+  }).join('');
+}
+
+/* ══════════ COPIA AUTOMÁTICA ROTATORIA ══════════ */
+function dayStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function readBkSlot(key){
+  return window.storage.get(key).then(function(r){
+    if(!r||r.value==null)return null;
+    try{var o=JSON.parse(r.value);if(!isBackupObject(o))return null;return {key:key,o:o,fecha:o.fecha||''};}
+    catch(e){return null;}
+  }).catch(function(){return null;});
+}
+function readAllBkSlots(){return Promise.all(AUTO_BK_KEYS.map(readBkSlot));}
+function newestBk(slots){var n=null;slots.forEach(function(s){if(s&&(!n||s.fecha>n.fecha))n=s;});return n;}
+/* Al arrancar (datos leídos OK): si la copia más nueva no es de hoy, escribe una
+   en el slot vacío o más antiguo. Silenciosa; nunca debe romper la app. */
+function autoBackupMaybe(history){
+  if(!ESTADO_LEIDO)return Promise.resolve();
+  return readAllBkSlots().then(function(slots){
+    var today=dayStr(new Date());
+    var n=newestBk(slots);
+    if(n&&n.fecha&&dayStr(new Date(n.fecha))===today)return;   /* ya hay copia de hoy */
+    var target=null,i,j;
+    for(i=0;i<AUTO_BK_KEYS.length;i++){if(!slots[i]){target=AUTO_BK_KEYS[i];break;}}
+    if(!target){var old=slots[0];for(j=1;j<slots.length;j++){if(slots[j]&&(!old||slots[j].fecha<old.fecha))old=slots[j];}target=old?old.key:AUTO_BK_KEYS[0];}
+    var payload={app:'marcador-juegos-mesa',version:APP_VERSION,fecha:new Date().toISOString(),
+                 state:state,theme:THEME,history:Array.isArray(history)?history:[],profiles:profiles};
+    return window.storage.set(target,JSON.stringify(payload)).catch(function(){});
+  }).catch(function(){});
+}
+function fmtBkDate(iso){
+  var d=new Date(iso);if(isNaN(d.getTime()))return iso||'—';
+  var meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return (dayStr(new Date())===dayStr(d)?'Hoy · ':'')+d.getDate()+' '+meses[d.getMonth()]+' '+d.getFullYear();
+}
+/* Botón de dos pasos (sin confirm(), que se capa incrustado — D7b) */
+function twoStepBtn(btn,confirmLabel,fn){
+  if(btn.dataset.armed==='1'){clearTimeout(btn._t);btn.dataset.armed='0';btn.classList.remove('armed');if(btn._base!=null)btn.textContent=btn._base;fn();return;}
+  btn._base=btn.textContent;btn.dataset.armed='1';btn.classList.add('armed');btn.textContent=confirmLabel;
+  clearTimeout(btn._t);
+  btn._t=setTimeout(function(){if(btn.dataset.armed==='1'){btn.dataset.armed='0';btn.classList.remove('armed');btn.textContent=btn._base;}},4000);
+}
+function renderAutoBk(){
+  var el=$('autoBkList');if(!el)return;
+  el.innerHTML='<div class="abkEmpty">Cargando…</div>';
+  readAllBkSlots().then(function(slots){
+    var items=slots.filter(Boolean).sort(function(a,b){return a.fecha<b.fecha?1:(a.fecha>b.fecha?-1:0);});
+    if(!items.length){el.innerHTML='<div class="abkEmpty">Aún no hay copias automáticas. Se crean solas al abrir la app.</div>';return;}
+    el.innerHTML=items.map(function(s){
+      var np=(s.o.state&&Array.isArray(s.o.state.players))?s.o.state.players.length:0;
+      var nh=Array.isArray(s.o.history)?s.o.history.length:0;
+      return '<div class="abk"><div class="abkmeta"><div class="abkd">'+esc(fmtBkDate(s.fecha))+'</div>'
+        +'<div class="abks">'+np+' jugador'+(np===1?'':'es')+' · '+nh+' partida'+(nh===1?'':'s')+' en historial</div></div>'
+        +'<button class="abkrest" data-restorebk="'+esc(s.key)+'" aria-label="Restaurar la copia del '+esc(fmtBkDate(s.fecha))+'">Restaurar</button></div>';
+    }).join('');
+  });
+}
+document.addEventListener('click',function(e){
+  var rb=e.target.closest&&e.target.closest('[data-restorebk]');
+  if(!rb)return;
+  var key=rb.dataset.restorebk;
+  twoStepBtn(rb,'Confirmar',function(){
+    readBkSlot(key).then(function(s){
+      if(!s){showNotice('Esa copia ya no está disponible.');renderAutoBk();return;}
+      applyBackupObject(s.o).then(function(){
+        optSheet.close();showNotice('Copia del '+fmtBkDate(s.fecha)+' restaurada.');
+      }).catch(function(){showNotice('No se pudo restaurar esa copia.');});
+    });
+  });
+});
+
+/* ══════════ AVISO DE LECTURA FALLIDA (§6.1) ══════════ */
+function showLoadFail(){
+  var el=$('loadFail');if(!el)return;el.hidden=false;
+  readAllBkSlots().then(function(slots){   /* ofrecer restaurar: equivalente local a "traer de la nube" */
+    var n=newestBk(slots),btn=$('lfRestore'),hint=$('lfRestoreHint');
+    if(n){btn.hidden=false;btn.textContent='↺ Restaurar copia automática · '+fmtBkDate(n.fecha);
+      hint.hidden=false;hint.textContent='Recupera lo guardado la última vez que abriste la app.';btn._slot=n;}
+    else{btn.hidden=true;hint.hidden=true;}
+  });
+}
+function hideLoadFail(){var el=$('loadFail');if(el)el.hidden=true;}
+$('lfRetry').addEventListener('click',function(){var b=this;b.textContent='Reintentando…';setTimeout(function(){b.textContent='Reintentar';},1200);boot();});
+$('lfRestore').addEventListener('click',function(){
+  var n=this._slot;if(!n)return;
+  applyBackupObject(n.o).then(function(){
+    ESTADO_LEIDO=true;hideLoadFail();showNotice('Copia del '+fmtBkDate(n.fecha)+' restaurada.');
+  }).catch(function(){showNotice('No se pudo restaurar esa copia.');});
+});
+$('lfWipe').addEventListener('click',function(){
+  var hint=$('lfWipeHint'),b=this;
+  if(this.dataset.armed!=='1'){
+    this.dataset.armed='1';this.classList.add('armed');this.textContent='Confirmar: empezar de cero';hint.hidden=false;
+    clearTimeout(b._t);b._t=setTimeout(function(){b.dataset.armed='0';b.classList.remove('armed');b.textContent='Empezar de cero';hint.hidden=true;},4000);
+    return;
+  }
+  clearTimeout(b._t);this.dataset.armed='0';this.classList.remove('armed');this.textContent='Empezar de cero';hint.hidden=true;
+  ESTADO_LEIDO=true;hideLoadFail();                     /* ÚNICA salida que habilita escribir encima */
+  $('gameName').value=state.gameName;renderAll();ttSyncControls();save();
+});
+
+/* ══════════ ARRANQUE CON GUARDIA DE LECTURA (§6.1) ══════════ */
+function applyProfFromRaw(raw){if(raw!=null){var p=JSON.parse(raw);profiles=(p&&typeof p==='object')?p:{};}}
+function boot(){
+  hideLoadFail();
+  var histParsed=[];
+  Promise.all([loadTheme(),readRaw(KEY),readRaw(KEY_H),readRaw(KEY_P)]).then(function(v){
+    applyStateFromRaw(v[1]);                              /* lanza si el JSON del estado está roto */
+    if(v[2]!=null){var h=JSON.parse(v[2]);histParsed=Array.isArray(h)?h:[];}
+    applyProfFromRaw(v[3]);                               /* lanza si el JSON de perfiles está roto */
+    ESTADO_LEIDO=true;
+    $('gameName').value=state.gameName;
+    applyTheme();renderAll();ttSyncControls();requestWL();
+    autoBackupMaybe(histParsed);                          /* copia del día (silenciosa) */
+  }).catch(function(){
+    ESTADO_LEIDO=false;                                   /* no leído bien → NO escribir */
+    applyTheme();
+    showLoadFail();
+  });
+}
+/* ══════════ SERVICE WORKER (§1.8) ══════════
+   Solo cuando la app está publicada (http/https). Abierta como archivo o dentro
+   de la vista previa no hay service worker, y la app funciona igual. La versión
+   viaja en la URL (sw.js?v=vNN): cada versión estrena caché. */
+function swOn(){return ('serviceWorker' in navigator)&&/^https?:$/.test(location.protocol);}
+function swVersion(){
+  var c=swOn()&&navigator.serviceWorker.controller;if(!c)return null;
+  var m=/[?&]v=([^&]+)/.exec(c.scriptURL||'');return m?decodeURIComponent(m[1]):'v0';
+}
+function swLine(){
+  if(!swOn())return 'no disponible (abierta como archivo o en vista previa).';
+  var v=swVersion();
+  if(!v)return 'instalándose; en la próxima apertura funcionará sin conexión.';
+  return v===APP_VERSION?('caché '+v+' · funciona sin conexión.'):('⚠ desajuste: la caché es '+v+' y la app '+APP_VERSION+'. Recarga la página.');
+}
+if(swOn()){
+  try{
+    navigator.serviceWorker.register('sw.js?v='+encodeURIComponent(APP_VERSION)).then(function(){
+      renderVersion();
+      /* nunca fallar en silencio: si tras arrancar la caché es de otra versión, avisarlo */
+      setTimeout(function(){var v=swVersion();if(v&&v!==APP_VERSION)showNotice('⚠ La copia sin conexión es '+v+'. Recarga la página para usar la '+APP_VERSION+'.');},4000);
+    }).catch(function(){renderVersion();});
+    navigator.serviceWorker.addEventListener('controllerchange',renderVersion);
+  }catch(e){}
+}
+renderVersion();
+boot();
+})();
+</script>
+</html>
